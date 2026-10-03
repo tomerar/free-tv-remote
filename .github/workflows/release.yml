@@ -1,15 +1,23 @@
 name: Release
 
-# Tag a version (git tag v0.1.0 && git push --tags) to publish a GitHub Release with an installable APK.
-# "Run workflow" (manual) with a tag name builds the APK, creates that tag on the selected commit and
-# publishes the release (useful where pushing tags is not possible). Leave the tag empty to only build.
+# Two clearly separated modes:
+#
+#  * PUBLISH (a "v*" tag push, or a manual run with a tag name): builds the release APK, signs it with the
+#    STABLE project key from repository secrets, and creates the GitHub Release. If the signing secrets are
+#    missing or wrong the run fails before building anything. There is no fallback to a generated key.
+#
+#  * DEVELOPMENT BUILD (manual run with the tag left empty): builds an APK signed with a throw-away key and
+#    uploads it as a workflow artifact only. It installs fine but is NOT update-compatible with any other
+#    build, and it never creates a release.
+#
+# Maintainer guide: docs/RELEASING.md
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag to create and publish, e.g. v0.1.0 (empty = build only, no release)"
+        description: "Version tag to publish, e.g. v0.1.1 (leave EMPTY for a development build that is not published)"
         required: false
         default: ""
         type: string
@@ -27,6 +35,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Decide the mode and validate the tag
+        run: |
+          if [ -n "$TAG" ]; then
+            echo "MODE=publish" >> "$GITHUB_ENV"
+            if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+              echo "::error title=Invalid tag::'$TAG' is not a version tag such as v1.2.3."
+              exit 1
+            fi
+            VERSION_NAME=$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' app/build.gradle.kts | head -1)
+            if [ "v$VERSION_NAME" != "$TAG" ]; then
+              echo "::error title=Tag and app version differ::The tag is $TAG but app/build.gradle.kts has versionName $VERSION_NAME. Bump versionCode and versionName first."
+              exit 1
+            fi
+          else
+            echo "MODE=dev" >> "$GITHUB_ENV"
+            echo "::notice title=Development build::No tag given: this APK uses a one-off key, is not update-compatible and will not be published."
+          fi
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -40,55 +66,46 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Prepare signing key
+      - name: Prepare the signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        run: |
-          if [ -n "$SIGNING_KEY_BASE64" ]; then
-            echo "$SIGNING_KEY_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
-            echo "SIGNING_STORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
-            echo "SIGNING_STORE_PASSWORD=$SIGNING_STORE_PASSWORD" >> "$GITHUB_ENV"
-            echo "SIGNING_KEY_ALIAS=$SIGNING_KEY_ALIAS" >> "$GITHUB_ENV"
-            echo "SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
-            echo "SIGNING_KIND=project key" >> "$GITHUB_ENV"
-          else
-            # No project key configured: sign with a one-off key so the APK is still installable.
-            # Android only allows updating an app with the same key, so such builds cannot update each other.
-            PASS=$(openssl rand -hex 16)
-            keytool -genkeypair -keystore "$RUNNER_TEMP/release.jks" -storepass "$PASS" -keypass "$PASS" \
-              -alias release -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Free TV Remote CI build"
-            echo "SIGNING_STORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
-            echo "SIGNING_STORE_PASSWORD=$PASS" >> "$GITHUB_ENV"
-            echo "SIGNING_KEY_ALIAS=release" >> "$GITHUB_ENV"
-            echo "SIGNING_KEY_PASSWORD=$PASS" >> "$GITHUB_ENV"
-            echo "SIGNING_KIND=one-off CI key" >> "$GITHUB_ENV"
-          fi
+        run: .github/scripts/prepare-signing.sh "$MODE"
 
       - name: Build and test
         run: ./gradlew check assembleRelease --stacktrace
 
-      - name: Verify the signature and name the APK
+      - name: Verify the signature and the signing identity
+        env:
+          RELEASE_CERT_SHA256: ${{ vars.RELEASE_CERT_SHA256 }}
+        run: .github/scripts/verify-signature.sh app/build/outputs/apk/release/app-release.apk "$MODE"
+
+      - name: Name the APK and write the summary
         run: |
-          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | tail -1)
-          SRC=app/build/outputs/apk/release/app-release.apk
-          "$APKSIGNER" verify --verbose "$SRC"
-          NAME="FreeTVRemote-${TAG:-dev-${GITHUB_SHA::7}}.apk"
+          if [ "$MODE" = publish ]; then
+            NAME="FreeTVRemote-${TAG}.apk"
+          else
+            NAME="FreeTVRemote-dev-${GITHUB_SHA::7}-NOT-UPDATABLE.apk"
+          fi
           mkdir -p dist
-          cp "$SRC" "dist/$NAME"
+          cp app/build/outputs/apk/release/app-release.apk "dist/$NAME"
           (cd dist && sha256sum "$NAME" > "$NAME.sha256")
-          echo "Signed with: $SIGNING_KIND"
-          cat "dist/$NAME.sha256"
+          {
+            echo "### ${MODE^^} build"
+            echo "- Signed with: $SIGNING_KIND"
+            echo "- Signer certificate SHA-256: \`$CERT_SHA256\`"
+            echo "- APK SHA-256: \`$(cut -d' ' -f1 "dist/$NAME.sha256")\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: FreeTVRemote-apk
+          name: ${{ env.MODE == 'publish' && 'FreeTVRemote-release-apk' || 'FreeTVRemote-dev-apk-not-updatable' }}
           path: dist/*
 
       - uses: softprops/action-gh-release@v2
-        if: env.TAG != ''
+        if: env.MODE == 'publish'
         with:
           tag_name: ${{ env.TAG }}
           target_commitish: ${{ github.sha }}
@@ -102,3 +119,5 @@ jobs:
             3. Tap **Install**, then open **Free TV Remote** and follow the pairing steps.
 
             Optional: check the download against the `.sha256` file. Full guide: https://github.com/${{ github.repository }}/blob/main/docs/INSTALL.md
+
+            Signing certificate SHA-256 (the same for every update-compatible release): `${{ env.CERT_SHA256 }}`

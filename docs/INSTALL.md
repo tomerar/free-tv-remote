@@ -28,16 +28,26 @@ shasum -a 256 -c FreeTVRemote-<version>.apk.sha256  # macOS
 
 It should print `OK`.
 
-### Updating
+### Updating (and the v0.1.0 limitation)
 
-Install the newer APK over the old one. Android only accepts an update signed with the **same key** as
-the installed version, so if an update is refused, uninstall the app first (you will have to pair again).
+Android only accepts an update that is signed with the **same key** as the installed version.
+
+- **v0.1.0 cannot be updated.** It was published with a one-off signing key that no longer exists, so no later
+  release can be installed over it. To move to a newer release you must **uninstall v0.1.0 first**. That
+  deletes the app's data, so you will pair your TVs again (about a minute each). There is no way around this.
+- **Releases from the next one on** are signed with a stable project key and update normally: install the
+  newer APK over the old one and your TVs and settings are kept. Each release lists the signing certificate
+  fingerprint in its notes.
+- **Development builds** (the "latest development build" in Option 2, or anything you build yourself) are
+  installable but are **not update-compatible** with releases or with each other. Treat them as throw-away
+  test installs; uninstall before switching between a development build and a release.
 
 ## Option 2: latest development build
 
 Every push runs CI. Open the repository's **Actions** tab, pick the newest green run and download the
 `debug-apk` artifact (a zip containing `app-debug.apk`; you must be signed in to GitHub). Debug builds are
-larger and may be less polished. Installing works the same way as above.
+larger and may be less polished. Installing works the same way as above, but see the update note above:
+these builds are **not** update-compatible with releases.
 
 ## Option 3: install with a computer (adb)
 

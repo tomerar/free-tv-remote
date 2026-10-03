@@ -59,10 +59,14 @@ The quickest way, no account needed:
 
 | Source | Status |
 | --- | --- |
-| **GitHub Releases** (APK + SHA-256 checksum) | Tag a version to publish; see [docs/INSTALL.md](docs/INSTALL.md) |
-| **Latest development build** | Download the `debug-apk` artifact from the newest green run in the [Actions](../../actions) tab |
+| **GitHub Releases** (APK + SHA-256 checksum) | Signed with the project key; maintainers: [docs/RELEASING.md](docs/RELEASING.md) |
+| **Latest development build** | The `debug-apk` artifact of the newest green [Actions](../../actions) run. Installable, but not update-compatible |
 | **F-Droid** | Planned; the Fastlane metadata is already in [`fastlane/metadata/android`](fastlane/metadata/android) |
 | **Build it yourself** | See [Building](#building) |
+
+> **Updating:** the `v0.1.0` APK was signed with a one-off key and **cannot be updated in place**; uninstall it
+> before installing a later release (you will pair your TVs again). Releases after it use a stable signing
+> key and update normally. Development builds are never update-compatible. Details: [docs/INSTALL.md](docs/INSTALL.md#updating-and-the-v010-limitation).
 
 Requires **Android 8.0 (API 26) or newer**. On Android 17 and newer, Android asks you to allow access to
 devices on the local network; the app cannot work without that permission.
@@ -131,7 +135,8 @@ cd free-tv-remote
 Release signing is optional. Put `storeFile`, `storePassword`, `keyAlias` and `keyPassword` in a
 `keystore.properties` file (git-ignored), or set `SIGNING_STORE_FILE`, `SIGNING_STORE_PASSWORD`,
 `SIGNING_KEY_ALIAS` and `SIGNING_KEY_PASSWORD`, then run `./gradlew assembleRelease`. Without them the
-release APK is built unsigned. Tagging `v*` makes GitHub Actions build the release APK and attach it to a release.
+release APK is built unsigned (a partial configuration fails). Publishing a release requires the stable project key;
+see [docs/RELEASING.md](docs/RELEASING.md).
 
 ### Repository layout
 

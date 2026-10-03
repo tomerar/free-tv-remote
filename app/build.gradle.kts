@@ -15,7 +15,45 @@ val keystoreProps =
     }
 
 fun signingValue(propKey: String, envKey: String): String? =
-    keystoreProps.getProperty(propKey) ?: System.getenv(envKey)
+    (keystoreProps.getProperty(propKey) ?: System.getenv(envKey))?.takeIf { it.isNotBlank() }
+
+// Release signing: nothing configured = an unsigned local release APK (fine for development).
+// Published releases set REQUIRE_RELEASE_SIGNING=true (or -PrequireReleaseSigning=true): then a missing
+// or partial configuration fails the build at once instead of producing an unsigned or wrongly signed APK.
+val releaseSigningSettings =
+    linkedMapOf(
+        "storeFile" to signingValue("storeFile", "SIGNING_STORE_FILE"),
+        "storePassword" to signingValue("storePassword", "SIGNING_STORE_PASSWORD"),
+        "keyAlias" to signingValue("keyAlias", "SIGNING_KEY_ALIAS"),
+        "keyPassword" to signingValue("keyPassword", "SIGNING_KEY_PASSWORD"),
+    )
+val releaseSigningRequired =
+    findProperty("requireReleaseSigning") == "true" || System.getenv("REQUIRE_RELEASE_SIGNING") == "true"
+
+val verifyReleaseSigning =
+    tasks.register("verifyReleaseSigning") {
+        group = "verification"
+        description = "Fails when release signing is required but not (fully) configured. Prints no secrets."
+        val settings = releaseSigningSettings.toMap()
+        val required = releaseSigningRequired
+        val keystore = settings["storeFile"]?.let { rootProject.file(it) }
+        doLast {
+            val missing = settings.filterValues { it == null }.keys
+            if (missing.isNotEmpty() && (required || missing.size < settings.size)) {
+                throw GradleException(
+                    "Release signing is not configured completely. Missing: ${missing.joinToString()}. " +
+                        "Provide keystore.properties (storeFile, storePassword, keyAlias, keyPassword) or the " +
+                        "SIGNING_STORE_FILE, SIGNING_STORE_PASSWORD, SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD " +
+                        "environment variables. See docs/RELEASING.md.",
+                )
+            }
+            if (required && keystore?.isFile != true) {
+                throw GradleException("Release signing is required but the keystore file was not found: ${settings["storeFile"]}")
+            }
+        }
+    }
+
+tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn(verifyReleaseSigning) }
 
 android {
     namespace = "io.github.tomerar.freetvremote"

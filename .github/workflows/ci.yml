@@ -35,6 +35,19 @@ jobs:
       - name: Build, test, lint (ktlint, detekt, Android lint)
         run: ./gradlew check assembleDebug --stacktrace
 
+      - name: Release signing guard rejects a missing signing configuration
+        run: |
+          # Published releases must never be built without the project key. Expect this build to FAIL.
+          if REQUIRE_RELEASE_SIGNING=true ./gradlew :app:verifyReleaseSigning > guard.log 2>&1; then
+            echo "The release signing guard did not reject a missing configuration"; cat guard.log; exit 1
+          fi
+          grep -q "Release signing is not configured completely" guard.log
+          # The release workflow's own checks, exercised without secrets.
+          if GITHUB_ENV=/dev/null .github/scripts/prepare-signing.sh publish > guard2.log 2>&1; then
+            echo "publish mode accepted missing signing secrets"; cat guard2.log; exit 1
+          fi
+          grep -q "Release signing is not configured" guard2.log
+
       - name: Verify the APK contains the Hebrew translation
         run: |
           AAPT2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | tail -1)
