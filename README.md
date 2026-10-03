@@ -13,6 +13,17 @@ No ads. No account. No cloud. No tracking.
 
 </div>
 
+## Download
+
+**[⬇ Download the latest APK (v0.1.1)](https://github.com/tomerar/free-tv-remote/releases/download/v0.1.1/FreeTVRemote-v0.1.1.apk)**
+· [All releases](https://github.com/tomerar/free-tv-remote/releases/latest)
+· [Install guide](docs/INSTALL.md)
+
+Open the file on your Android phone (8.0 or newer), allow "install unknown apps" if asked, tap **Install**.
+
+> This build is signed with a one-off key, so Android cannot update it in place from or to any other release
+> (including v0.1.0): uninstall the old version first. It is also not yet verified on real TVs.
+
 <!-- Add phone screenshots under fastlane/metadata/android/en-US/images/phoneScreenshots/ and show them here. -->
 > *Screenshots: coming soon.*
 
