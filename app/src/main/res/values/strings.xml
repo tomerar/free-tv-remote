@@ -79,11 +79,14 @@
     <string name="discover_title">Choose your TV</string>
     <string name="discover_intro">Make sure your phone and TV are on the same Wi-Fi network and the TV is switched on.</string>
     <string name="discover_scanning">Looking for TVs…</string>
-    <string name="discover_none">No TV found yet. You can also enter its IP address below.</string>
-    <string name="discover_error">Could not search the network. Check that Wi-Fi is on, or enter the IP address.</string>
+    <string name="discover_error">Check that Wi-Fi is on, then search again, or enter the IP address.</string>
+    <string name="discover_search">Search for TVs</string>
+    <string name="discover_none_title">No TVs found</string>
+    <string name="discover_none_tips">Check that your phone and TV are on the same Wi-Fi network, that the TV is switched on, and that you allowed network access. Then search again, or enter the IP address.</string>
+    <string name="discover_error_title">Could not search the network</string>
     <string name="discover_rescan">Search again</string>
     <string name="discover_paired_badge">Paired</string>
-    <string name="discover_manual_title">Enter the IP address</string>
+    <string name="discover_manual_title">Can\'t find your TV? Enter its IP address</string>
     <string name="discover_manual_label">TV IP address</string>
     <string name="discover_manual_hint">For example 192.168.1.20</string>
     <string name="discover_manual_invalid">Enter a valid IP address</string>

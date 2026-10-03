@@ -1,0 +1,1 @@
+Finding your TV is now simpler: tap "Search for TVs" and the search runs for 15 seconds with a progress bar, then stops by itself. Clear help when no TV is found; entering an IP address stays available.

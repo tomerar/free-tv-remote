@@ -9,6 +9,7 @@ import io.github.tomerar.freetvremote.data.AppShortcut
 import io.github.tomerar.freetvremote.data.SavedTv
 import io.github.tomerar.freetvremote.data.ThemeMode
 import io.github.tomerar.freetvremote.discovery.DiscoveredTv
+import io.github.tomerar.freetvremote.discovery.TvDiscovery
 import io.github.tomerar.freetvremote.protocol.remote.ConnectionState
 import io.github.tomerar.freetvremote.protocol.remote.TvState
 import io.github.tomerar.freetvremote.remote.KeyGestures
@@ -17,6 +18,8 @@ import io.github.tomerar.freetvremote.remote.PairingCoordinator
 import io.github.tomerar.freetvremote.remote.PairingState
 import io.github.tomerar.freetvremote.remote.ShortcutLauncher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +29,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 val LocalAppContainer = staticCompositionLocalOf<AppContainer> { error("AppContainer not provided") }
 
@@ -92,54 +96,84 @@ class RemoteViewModel(
     }
 }
 
+/** Where a network search is: not started, running, or finished (with or without an error). */
+enum class ScanPhase { IDLE, SCANNING, DONE, FAILED }
+
 data class DiscoverUiState(
-    val scanning: Boolean = false,
+    val phase: ScanPhase = ScanPhase.IDLE,
+    /** 0..1 while [ScanPhase.SCANNING]; the search ends by itself when it reaches 1. */
+    val progress: Float = 0f,
     val devices: List<DiscoveredTv> = emptyList(),
-    val failed: Boolean = false,
     val pairedHosts: Set<String> = emptySet(),
 )
 
+/**
+ * Searches only when asked and stops by itself after [scanDurationMs], so nothing keeps listening on the
+ * network (and draining the battery) while the user looks at the screen.
+ */
 class DiscoverViewModel(
-    private val container: AppContainer,
+    private val discovery: TvDiscovery,
+    private val savedTvs: Flow<List<SavedTv>>,
+    private val scanDurationMs: Long = SCAN_DURATION_MS,
 ) : ViewModel() {
+    constructor(container: AppContainer) : this(container.discovery, container.tvRepository.tvs)
+
     private val scan = MutableStateFlow(DiscoverUiState())
     private var job: Job? = null
 
     val uiState: StateFlow<DiscoverUiState> =
-        combine(scan, container.tvRepository.tvs) { s, tvs ->
+        combine(scan, savedTvs) { s, tvs ->
             s.copy(pairedHosts = tvs.map { it.host }.toSet())
         }.state(viewModelScope, DiscoverUiState())
 
     val hasSavedTvs: StateFlow<Boolean> =
-        container.tvRepository.tvs
+        savedTvs
             .map { it.isNotEmpty() }
             .state(viewModelScope, false)
 
+    /** Starts a bounded search. Ignored while one is already running. */
     fun startScan() {
         if (job?.isActive == true) return
-        scan.value = DiscoverUiState(scanning = true)
+        scan.value = DiscoverUiState(phase = ScanPhase.SCANNING)
         job =
             viewModelScope.launch {
-                container.discovery
-                    .discover()
-                    .catch { scan.update { it.copy(scanning = false, failed = true) } }
-                    .collect { found -> scan.update { it.copy(devices = found) } }
+                var failed = false
+                val ticker =
+                    launch {
+                        var elapsed = 0L
+                        while (elapsed < scanDurationMs) {
+                            delay(TICK_MS)
+                            elapsed += TICK_MS
+                            scan.update { it.copy(progress = (elapsed.toFloat() / scanDurationMs).coerceAtMost(1f)) }
+                        }
+                    }
+                withTimeoutOrNull(scanDurationMs) {
+                    discovery
+                        .discover()
+                        .catch { failed = true }
+                        .collect { found -> scan.update { it.copy(devices = found) } }
+                }
+                ticker.cancel()
+                scan.update { it.copy(phase = if (failed) ScanPhase.FAILED else ScanPhase.DONE, progress = 1f) }
             }
     }
 
+    /** Cancels a running search (leaving the screen, choosing a TV). Finished results are kept. */
     fun stopScan() {
-        job?.cancel()
+        if (job?.isActive == true) {
+            job?.cancel()
+            scan.value = DiscoverUiState()
+        }
         job = null
-        scan.update { it.copy(scanning = false) }
-    }
-
-    fun rescan() {
-        stopScan()
-        startScan()
     }
 
     override fun onCleared() {
         job?.cancel()
+    }
+
+    companion object {
+        const val SCAN_DURATION_MS = 15_000L
+        private const val TICK_MS = 100L
     }
 }
 

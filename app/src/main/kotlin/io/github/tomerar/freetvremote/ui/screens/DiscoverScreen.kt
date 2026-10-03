@@ -12,32 +12,33 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,7 @@ import io.github.tomerar.freetvremote.discovery.DiscoveredTv
 import io.github.tomerar.freetvremote.ui.DiscoverViewModel
 import io.github.tomerar.freetvremote.ui.LocalAppContainer
 import io.github.tomerar.freetvremote.ui.LocalNetworkPermission
+import io.github.tomerar.freetvremote.ui.ScanPhase
 import io.github.tomerar.freetvremote.ui.simpleFactory
 
 /** Valid IPv4 literal or a plain host name (letters, digits, dots, dashes). */
@@ -82,12 +84,12 @@ fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
             granted = it
             askedOnce = true
+            if (it) vm.startScan()
         }
 
     LifecycleStartEffect(granted) {
         // The user may have granted the permission in system settings.
         granted = LocalNetworkPermission.isGranted(context)
-        if (granted) vm.startScan()
         onStopOrDispose { vm.stopScan() }
     }
 
@@ -99,13 +101,6 @@ fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -
                     if (onBack != null) {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
-                        }
-                    }
-                },
-                actions = {
-                    if (granted) {
-                        IconButton(onClick = vm::rescan) {
-                            Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.discover_rescan))
                         }
                     }
                 },
@@ -130,12 +125,29 @@ fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -
                     )
                 }
             } else {
-                item { ScanStatus(scanning = state.scanning, failed = state.failed, empty = state.devices.isEmpty()) }
+                item { ScanStatus(state.phase, state.progress, empty = state.devices.isEmpty(), onSearch = vm::startScan) }
                 items(state.devices, key = { it.name + it.host }) { device ->
-                    DeviceRow(device, paired = device.host in state.pairedHosts, onClick = { onPair(device.host, device.name) })
+                    DeviceRow(
+                        device,
+                        paired = device.host in state.pairedHosts,
+                        onClick = {
+                            vm.stopScan()
+                            onPair(device.host, device.name)
+                        },
+                    )
+                }
+                if (state.phase == ScanPhase.DONE || state.phase == ScanPhase.FAILED) {
+                    if (state.devices.isNotEmpty()) {
+                        item {
+                            OutlinedButton(onClick = vm::startScan) { Text(stringResource(R.string.discover_rescan)) }
+                        }
+                    }
                 }
             }
-            item { ManualEntry(onPair = { host -> onPair(host, defaultName) }) }
+            item {
+                val nothingFound = (state.phase == ScanPhase.DONE || state.phase == ScanPhase.FAILED) && state.devices.isEmpty()
+                ManualEntry(forceOpen = nothingFound, onPair = { host -> onPair(host, defaultName) })
+            }
         }
     }
 }
@@ -155,17 +167,35 @@ private fun PermissionCard(askedBefore: Boolean, onGrant: () -> Unit, onOpenSett
 }
 
 @Composable
-private fun ScanStatus(scanning: Boolean, failed: Boolean, empty: Boolean) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (scanning) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-        val text =
-            when {
-                failed -> R.string.discover_error
-                scanning && empty -> R.string.discover_scanning
-                empty -> R.string.discover_none
-                else -> null
+private fun ScanStatus(phase: ScanPhase, progress: Float, empty: Boolean, onSearch: () -> Unit) {
+    when (phase) {
+        ScanPhase.IDLE -> {
+            Button(onClick = onSearch, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                Text(stringResource(R.string.discover_search))
             }
-        if (text != null) Text(stringResource(text), style = MaterialTheme.typography.bodyMedium)
+        }
+
+        ScanPhase.SCANNING -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.discover_scanning), style = MaterialTheme.typography.bodyMedium)
+                LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+            }
+        }
+
+        ScanPhase.DONE, ScanPhase.FAILED -> {
+            if (empty) {
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val title = if (phase == ScanPhase.FAILED) R.string.discover_error_title else R.string.discover_none_title
+                        val tips = if (phase == ScanPhase.FAILED) R.string.discover_error else R.string.discover_none_tips
+                        Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(tips), style = MaterialTheme.typography.bodyMedium)
+                        Button(onClick = onSearch) { Text(stringResource(R.string.discover_rescan)) }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -187,7 +217,12 @@ private fun DeviceRow(device: DiscoveredTv, paired: Boolean, onClick: () -> Unit
 }
 
 @Composable
-private fun ManualEntry(onPair: (String) -> Unit) {
+private fun ManualEntry(forceOpen: Boolean, onPair: (String) -> Unit) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    if (!expanded && !forceOpen) {
+        TextButton(onClick = { expanded = true }) { Text(stringResource(R.string.discover_manual_title)) }
+        return
+    }
     var host by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
     val submit = {

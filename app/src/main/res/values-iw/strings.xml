@@ -79,11 +79,14 @@
     <string name="discover_title">בחרו את הטלוויזיה</string>
     <string name="discover_intro">ודאו שהטלפון והטלוויזיה מחוברים לאותה רשת Wi-Fi ושהטלוויזיה דולקת.</string>
     <string name="discover_scanning">מחפש טלוויזיות…</string>
-    <string name="discover_none">עדיין לא נמצאה טלוויזיה. אפשר גם להזין את כתובת ה-IP שלה למטה.</string>
-    <string name="discover_error">לא ניתן לסרוק את הרשת. בדקו ש-Wi-Fi פועל, או הזינו כתובת IP.</string>
+    <string name="discover_error">בדקו ש-Wi-Fi פועל, ואז חפשו שוב, או הזינו כתובת IP.</string>
+    <string name="discover_search">חיפוש טלוויזיות</string>
+    <string name="discover_none_title">לא נמצאו טלוויזיות</string>
+    <string name="discover_none_tips">ודאו שהטלפון והטלוויזיה מחוברים לאותה רשת Wi-Fi, שהטלוויזיה דולקת ושאישרתם גישה לרשת. אחר כך חפשו שוב, או הזינו כתובת IP.</string>
+    <string name="discover_error_title">לא ניתן לסרוק את הרשת</string>
     <string name="discover_rescan">חיפוש מחדש</string>
     <string name="discover_paired_badge">מותאם</string>
-    <string name="discover_manual_title">הזנת כתובת IP</string>
+    <string name="discover_manual_title">לא מוצאים את הטלוויזיה? הזינו כתובת IP</string>
     <string name="discover_manual_label">כתובת ה-IP של הטלוויזיה</string>
     <string name="discover_manual_hint">לדוגמה 192.168.1.20</string>
     <string name="discover_manual_invalid">הזינו כתובת IP תקינה</string>
