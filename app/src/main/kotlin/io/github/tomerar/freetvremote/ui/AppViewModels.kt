@@ -12,6 +12,7 @@ import io.github.tomerar.freetvremote.discovery.DiscoveredTv
 import io.github.tomerar.freetvremote.protocol.remote.ConnectionState
 import io.github.tomerar.freetvremote.protocol.remote.TvState
 import io.github.tomerar.freetvremote.remote.KeyGestures
+import io.github.tomerar.freetvremote.remote.KeyboardDraftController
 import io.github.tomerar.freetvremote.remote.PairingCoordinator
 import io.github.tomerar.freetvremote.remote.PairingState
 import kotlinx.coroutines.Job
@@ -48,6 +49,13 @@ class RemoteViewModel(
 
     val gestures = KeyGestures(viewModelScope, controller)
 
+    val keyboard =
+        KeyboardDraftController(
+            scope = viewModelScope,
+            isConnected = { controller.connection.value == ConnectionState.Connected },
+            sendText = controller::sendText,
+        )
+
     val uiState: StateFlow<RemoteUiState> =
         combine(
             controller.activeTv,
@@ -67,10 +75,6 @@ class RemoteViewModel(
 
     fun launch(shortcut: AppShortcut) {
         viewModelScope.launch { controller.launchApp(shortcut.link) }
-    }
-
-    fun sendText(text: String) {
-        viewModelScope.launch { controller.sendText(text) }
     }
 
     fun switchTv(id: String) {

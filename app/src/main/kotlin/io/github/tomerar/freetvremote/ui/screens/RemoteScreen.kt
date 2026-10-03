@@ -192,8 +192,8 @@ fun RemoteScreen(
 
     if (showKeyboard) {
         KeyboardSheet(
+            keyboard = vm.keyboard,
             onDismiss = { showKeyboard = false },
-            onSendText = vm::sendText,
             onKey = vm::tap,
         )
     }

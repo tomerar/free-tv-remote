@@ -59,6 +59,10 @@
     <string name="keyboard_enter">Enter</string>
     <string name="keyboard_backspace">מחיקה אחורה</string>
     <string name="keyboard_note">בחרו קודם שדה טקסט בטלוויזיה. ההקלדה עובדת כשהמקלדת שעל המסך מוצגת בטלוויזיה.</string>
+    <string name="keyboard_status_sending">שולח…</string>
+    <string name="keyboard_status_sent">נשלח לטלוויזיה</string>
+    <string name="keyboard_error_not_connected">אין חיבור לטלוויזיה, ולכן לא נשלח דבר. הטקסט שלכם נשמר; התחברו מחדש ונסו שוב.</string>
+    <string name="keyboard_error_send_failed">לא ניתן לשלוח. הטקסט שלכם נשמר; נסו שוב.</string>
 
     <!-- TVs -->
     <string name="tvs_title">הטלוויזיות שלי</string>
