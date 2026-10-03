@@ -78,6 +78,7 @@ Use the IDs in your results file. "Record" means: write down what you actually o
 | C2 | Hold an arrow on a long row | Smooth repetition. Record speed |
 | C3 | Back, Home, Menu | Each behaves as expected. Record what Menu does on this TV |
 | C4 | Hold OK on an app icon | Context menu opens (a real long press) |
+| C6 | Look at the remote: the body with mute/power, input/menu, D-pad, back/keyboard/home, TV settings/guide, VOL and CH rockers, play/pause and info, app keys | It reads as a TV remote; keys line up in columns; nothing overlaps or is cut off on this phone. Record the phone model and screen size |
 | C5 | Hold Back and Home | Record the TV's reaction (device dependent) |
 
 ### D. Volume, mute, phone volume buttons
@@ -89,6 +90,8 @@ Use the IDs in your results file. "Record" means: write down what you actually o
 | D4 | Phone volume buttons on the remote screen | Control the TV, hold repeats; phone volume does not change |
 | D5 | Switch the setting off; leave the remote screen | Phone buttons control the phone again |
 | D6 | Change TV volume with the TV's own remote | The status card volume text follows, or record that the TV does not report it (e.g. external audio/CEC) |
+| D8 | Use the VOL and CH rockers and the mute key; hold VOL + | Volume and channel change and repeat while held; the mute key turns red when muted (record whether this TV reports mute and what CH does on it) |
+| D9 | Press Input, TV settings, Guide and Info | Record what each one opens on this TV (vendor dependent) |
 | D7 | Tap the status card to open it, then close it | Closed: one line (connection, TV on/off, volume, app). Open: model, volume bar, app, address, connection time. Record which facts this TV does **not** send (model, app name, volume) and what the app name shows for the home screen and for a streaming app |
 
 ### E. Text entry
@@ -103,13 +106,14 @@ Focus a TV text field first (for example the search box of a video app).
 | E5 | Change to a different TV text field, send again | Goes to the newly focused field |
 | E6 | Backspace and Enter buttons | Act in the TV field |
 | E7 | Turn phone Wi-Fi off, press Send | Message says nothing was sent and the draft is still in the box; after reconnecting, Send works |
-| E8 | Focus a text field on the TV, open the status card | Record whether "The TV is asking for text" and the Type button appear, and whether they go away after the TV's keyboard is closed (known: they may stay, see docs/KNOWN_LIMITATIONS.md) |
+| E8 | Focus a text field on the TV, open the status card | Record whether "The TV is asking for text" appears, whether the keyboard key on the remote lights up, and whether they go away after the TV's keyboard is closed (known: they may stay, see docs/KNOWN_LIMITATIONS.md) |
 
 ### F. App shortcuts
 | ID | Steps | Expected / record |
 | --- | --- | --- |
 | F1 | Tap each built-in shortcut | Opens that app, or record "app not installed" and what the TV shows |
 | F2 | Add a custom deep link, then use it | Opens the target |
+| F4 | Look at the app keys: colors, letters and names; tap one | Each one is recognisable by color; tapping opens the app (or says it could not be sent) |
 | F3 | Add an invalid link | Rejected with a message |
 
 ### G. Standby and wake

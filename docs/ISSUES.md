@@ -62,3 +62,7 @@ platform. First step is research only: how pairing works, what is publicly docum
 project's rules (open source, local only, no cloud, no tracking). **Done when** a short design note per platform
 exists in `docs/`, with the open questions. Owners of such TVs who can test a prototype are especially welcome.
 See [COMPATIBILITY.md](COMPATIBILITY.md#lg-and-samsung).
+
+## Touchpad mode  [idea]
+A separate mode where the whole area is a trackpad: swipe to move, tap for OK, with a haptic tick per step. Kept apart
+from the key layout because a swipe that starts on a key conflicts with that key's immediate press (see DECISIONS D32).

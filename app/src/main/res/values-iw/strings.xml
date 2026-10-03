@@ -64,8 +64,15 @@
     <string name="key_mute">השתקה</string>
     <string name="key_power">הפעלה וכיבוי</string>
     <string name="key_play_pause">ניגון או השהיה</string>
-    <string name="key_rewind">הרצה אחורה</string>
-    <string name="key_forward">הרצה קדימה</string>
+    <string name="key_input">מקור קלט</string>
+    <string name="key_tv_settings">הגדרות הטלוויזיה</string>
+    <string name="key_guide">מדריך שידורים</string>
+    <string name="key_info">מידע</string>
+    <string name="key_channel_up">ערוץ הבא</string>
+    <string name="key_channel_down">ערוץ קודם</string>
+    <string name="remote_channel_group">ערוץ</string>
+    <string name="remote_label_volume">עוצמה</string>
+    <string name="remote_label_channel">ערוץ</string>
     <string name="key_keyboard">מקלדת</string>
     <string name="remote_volume_group">עוצמת שמע</string>
     <string name="remote_shortcuts_group">קיצורי אפליקציות</string>

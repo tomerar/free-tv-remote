@@ -136,7 +136,12 @@ class DPadTest {
             CompositionLocalProvider(LocalLayoutDirection provides direction) {
                 FreeTvRemoteTheme(ThemeMode.DARK) {
                     androidx.compose.material3.Surface {
-                        RemoteControlsPanel(gestures, rememberHaptics(false)) {}
+                        RemoteControlsPanel(
+                            gestures,
+                            rememberHaptics(false),
+                            io.github.tomerar.freetvremote.protocol.remote
+                                .TvState(),
+                        ) {}
                     }
                 }
             }

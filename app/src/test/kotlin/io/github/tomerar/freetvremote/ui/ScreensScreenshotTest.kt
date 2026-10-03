@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import io.github.tomerar.freetvremote.AppContainer
+import io.github.tomerar.freetvremote.data.AppShortcut
 import io.github.tomerar.freetvremote.data.SavedTv
 import io.github.tomerar.freetvremote.data.ThemeMode
 import io.github.tomerar.freetvremote.protocol.remote.ConnectionState
@@ -33,7 +35,10 @@ import io.github.tomerar.freetvremote.remote.KeySender
 import io.github.tomerar.freetvremote.ui.screens.DiagnosticsScreen
 import io.github.tomerar.freetvremote.ui.screens.DiscoverScreen
 import io.github.tomerar.freetvremote.ui.screens.PairScreen
+import io.github.tomerar.freetvremote.ui.screens.RemoteActions
+import io.github.tomerar.freetvremote.ui.screens.RemoteContent
 import io.github.tomerar.freetvremote.ui.screens.RemoteControlsPanel
+import io.github.tomerar.freetvremote.ui.screens.RemoteNavigation
 import io.github.tomerar.freetvremote.ui.screens.RemoteScreen
 import io.github.tomerar.freetvremote.ui.screens.SettingsScreen
 import io.github.tomerar.freetvremote.ui.screens.ShortcutsScreen
@@ -161,6 +166,66 @@ class ScreensScreenshotTest {
                 ),
             connectedSince = 0L,
         )
+
+    @Composable
+    private fun PreviewRemote(tvState: TvState) {
+        val scope = rememberCoroutineScope()
+        val gestures =
+            remember {
+                KeyGestures(
+                    scope,
+                    object : KeySender {
+                        override suspend fun tap(code: Int) = Unit
+
+                        override suspend fun holdStart(code: Int) = Unit
+
+                        override suspend fun holdEnd(code: Int) = Unit
+                    },
+                )
+            }
+        RemoteContent(
+            state =
+                sampleState.copy(
+                    tvState = tvState,
+                    tvs = listOf(sampleTv),
+                    shortcuts = AppShortcut.defaults.filter { it.enabled },
+                ),
+            gestures = gestures,
+            haptics = rememberHaptics(false),
+            snackbarHost = remember { SnackbarHostState() },
+            actions = RemoteActions({}, {}, {}, {}, {}, RemoteNavigation({}, {}, {}, {}, {}, { _, _ -> })),
+        )
+    }
+
+    private val playing = sampleState.tvState.copy(textFieldActive = false)
+
+    @Test
+    @Config(qualifiers = "w411dp-h1450dp-xxhdpi")
+    fun remoteWholeScreen() = shoot("v3_remote_full") { PreviewRemote(playing) }
+
+    @Test
+    @Config(qualifiers = "he-w411dp-h1450dp-xxhdpi")
+    fun remoteWholeScreenHebrew() = shoot("v3_remote_full_he") { PreviewRemote(playing.copy(textFieldActive = true, isMuted = true)) }
+
+    @Test
+    fun remotePlaying() = shoot("v2_remote_playing") { PreviewRemote(playing) }
+
+    @Test
+    fun remoteHomeScreen() =
+        shoot("v2_remote_home") {
+            PreviewRemote(playing.copy(currentApp = "com.google.android.apps.tv.launcherx", currentAppLabel = null))
+        }
+
+    @Test
+    fun remoteTextRequested() = shoot("v2_remote_text") { PreviewRemote(playing.copy(textFieldActive = true, isMuted = true)) }
+
+    @Test
+    @Config(qualifiers = "he-w411dp-h891dp-xxhdpi")
+    fun remotePlayingHebrew() = shoot("v2_remote_he") { PreviewRemote(playing) }
+
+    @Test
+    @Config(qualifiers = "w320dp-h568dp-xhdpi")
+    fun remoteSmallPhone() = shoot("v2_remote_small") { PreviewRemote(playing) }
 
     @Test
     fun statusCardClosed() =

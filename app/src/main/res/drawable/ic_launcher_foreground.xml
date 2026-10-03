@@ -4,15 +4,10 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- A simple original remote-control silhouette: body, D-pad ring and OK dot, two small buttons.
-         Even-odd fill turns the details into cut-outs so the same shape works as the themed (monochrome) icon. -->
-    <path
-        android:fillColor="#4FD8C4"
-        android:fillType="evenOdd"
-        android:pathData="M47,24h14a8,8 0 0 1 8,8v44a8,8 0 0 1 -8,8h-14a8,8 0 0 1 -8,-8v-44a8,8 0 0 1 8,-8z
-            M54,45m-10.2,0a10.2,10.2 0 1,0 20.4,0a10.2,10.2 0 1,0 -20.4,0
-            M54,45m-7.8,0a7.8,7.8 0 1,0 15.6,0a7.8,7.8 0 1,0 -15.6,0
-            M54,45m-3.2,0a3.2,3.2 0 1,0 6.4,0a3.2,3.2 0 1,0 -6.4,0
-            M48,68m-2.8,0a2.8,2.8 0 1,0 5.6,0a2.8,2.8 0 1,0 -5.6,0
-            M60,68m-2.8,0a2.8,2.8 0 1,0 5.6,0a2.8,2.8 0 1,0 -5.6,0" />
+    <!-- The D-pad as a symbol: four quarter rings and the OK dot, the right one lit as if just pressed. Original artwork. -->
+    <path android:fillColor="#4FD8C4" android:pathData="M78.15,33.01 A32,32 0 0 1 78.15,74.99 L64.57,63.18 A14,14 0 0 0 64.57,44.82 Z" />
+    <path android:fillColor="#664FD8C4" android:pathData="M74.99,78.15 A32,32 0 0 1 33.01,78.15 L44.82,64.57 A14,14 0 0 0 63.18,64.57 Z" />
+    <path android:fillColor="#664FD8C4" android:pathData="M29.85,74.99 A32,32 0 0 1 29.85,33.01 L43.43,44.82 A14,14 0 0 0 43.43,63.18 Z" />
+    <path android:fillColor="#664FD8C4" android:pathData="M33.01,29.85 A32,32 0 0 1 74.99,29.85 L63.18,43.43 A14,14 0 0 0 44.82,43.43 Z" />
+    <path android:fillColor="#4FD8C4" android:pathData="M45,54 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 Z" />
 </vector>

@@ -25,12 +25,31 @@
 
 ## The remote
 
-- **Circular D-pad** built from four sectors plus a centre OK button. Each sector is its own accessibility
-  element. Arrows repeat while held, OK and others support a real long press.
-- **Keys:** Back, Home, Menu, power, mute, volume up/down, play/pause, rewind, fast forward.
+The remote is drawn as the body of a physical TV remote, centered, with the keys where people expect them. The layout
+is the same in every language (left is always left):
+
+| Row | Left | Middle | Right |
+| --- | --- | --- | --- |
+| 1 | Mute | | Power (red) |
+| 2 | Input | | Menu |
+| 3 | | **D-pad with OK** | |
+| 4 | Back | **Keyboard** (where a remote has its microphone) | Home |
+| 5 | TV settings | | Guide |
+| 6 | **VOL** rocker (+ / −) | Play/pause, Info | **CH** rocker (up / down) |
+| 7+ | App keys, three per row | | |
+
+- Arrows, volume and channel repeat while held; OK and the other keys support a real long press.
+- The mute key turns red while the TV is muted. The keyboard key lights up when the TV is asking for text.
+- Each D-pad direction is its own accessibility element; every key has a spoken name and is at least 48 x 48 dp.
 - **Phone volume buttons** control the TV volume while the remote is open (optional).
 - **Haptic feedback** and optional **keep screen on**.
-- **Right-to-left safe:** in Hebrew the layout mirrors, but "left" on the D-pad is always physically left.
+- Channel, guide and info keys depend on the TV and its apps; on a streaming-only setup some of them may do nothing.
+
+## App keys
+
+At the bottom of the remote, a grid of colored circles with one or two letters and the app's name below (Netflix is a
+red **N**, Disney+ a blue **D+**, and so on), so each one is found by color like the app keys of a real remote. **No
+brand logos are used or shipped**; custom shortcuts get a stable color from their name. The last key edits the list.
 
 ## The status card
 
@@ -50,7 +69,7 @@ shown only if the TV reported it. The app name is the TV's own name when it send
 Write on the phone keyboard and send. The draft is kept until the send is known to have succeeded, so a failed
 send never loses your text. Backspace and Enter buttons act in the TV's field.
 
-## App shortcuts
+## Managing shortcuts
 
 Built-in shortcuts for Netflix, YouTube, Disney+ and Prime Video use deep links; you can add your own
 (`scheme://...`), reorder, disable or delete them. The app tells you when a shortcut could not be sent.

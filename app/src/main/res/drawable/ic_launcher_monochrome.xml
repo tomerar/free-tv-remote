@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- The D-pad as a symbol: four quarter rings and the OK dot, the right one lit as if just pressed. Original artwork. -->
+    <!-- Themed (monochrome) version: the system tints it; the three quiet sectors keep a lower alpha. -->
+    <path android:fillColor="#FF000000" android:pathData="M78.15,33.01 A32,32 0 0 1 78.15,74.99 L64.57,63.18 A14,14 0 0 0 64.57,44.82 Z" />
+    <path android:fillColor="#66000000" android:pathData="M74.99,78.15 A32,32 0 0 1 33.01,78.15 L44.82,64.57 A14,14 0 0 0 63.18,64.57 Z" />
+    <path android:fillColor="#66000000" android:pathData="M29.85,74.99 A32,32 0 0 1 29.85,33.01 L43.43,44.82 A14,14 0 0 0 43.43,63.18 Z" />
+    <path android:fillColor="#66000000" android:pathData="M33.01,29.85 A32,32 0 0 1 74.99,29.85 L63.18,43.43 A14,14 0 0 0 44.82,43.43 Z" />
+    <path android:fillColor="#FF000000" android:pathData="M45,54 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 Z" />
+</vector>

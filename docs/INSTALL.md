@@ -35,7 +35,7 @@ Android only accepts an update that is signed with the **same key** as the insta
 - **v0.1.0 cannot be updated.** It was published with a one-off signing key that no longer exists, so no later
   release can be installed over it. To move to a newer release you must **uninstall v0.1.0 first**. That
   deletes the app's data, so you will pair your TVs again (about a minute each). There is no way around this.
-- **v0.1.1 to v0.1.9 are also signed with one-off keys** (published before a stable project key was set up) and
+- **v0.1.1 to v0.2.0 are also signed with one-off keys** (published before a stable project key was set up) and
   carry a warning in their release notes: uninstall the old version before installing a later release.
 - **Releases signed with the stable project key** (the release notes say so) update normally: install the
   newer APK over the old one and your TVs and settings are kept. Each release lists the signing certificate

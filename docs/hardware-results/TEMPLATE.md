@@ -38,6 +38,7 @@
 | C3 | not tested | |
 | C4 | not tested | |
 | C5 | not tested | |
+| C6 | not tested | |
 | D1 | not tested | |
 | D2 | not tested | |
 | D3 | not tested | |
@@ -45,6 +46,8 @@
 | D5 | not tested | |
 | D6 | not tested | |
 | D7 | not tested | |
+| D8 | not tested | |
+| D9 | not tested | |
 | E1 | not tested | |
 | E2 | not tested | |
 | E3 | not tested | |
@@ -56,6 +59,7 @@
 | F1 | not tested | |
 | F2 | not tested | |
 | F3 | not tested | |
+| F4 | not tested | |
 | G1 | not tested | |
 | G2 | not tested | |
 | G3 | not tested | |

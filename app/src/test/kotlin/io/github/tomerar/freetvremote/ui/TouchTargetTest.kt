@@ -10,6 +10,7 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import io.github.tomerar.freetvremote.data.ThemeMode
+import io.github.tomerar.freetvremote.protocol.remote.TvState
 import io.github.tomerar.freetvremote.remote.GestureTiming
 import io.github.tomerar.freetvremote.remote.KeyGestures
 import io.github.tomerar.freetvremote.remote.KeySender
@@ -55,7 +56,7 @@ class TouchTargetTest {
         compose.setContent {
             FreeTvRemoteTheme(ThemeMode.DARK, dynamicColor = false) {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    RemoteControlsPanel(gestures, rememberHaptics(false), onTap = {})
+                    RemoteControlsPanel(gestures, rememberHaptics(false), TvState(), onTap = {})
                 }
             }
         }

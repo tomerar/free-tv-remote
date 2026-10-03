@@ -63,8 +63,15 @@
     <string name="key_mute">Mute</string>
     <string name="key_power">Power</string>
     <string name="key_play_pause">Play or pause</string>
-    <string name="key_rewind">Rewind</string>
-    <string name="key_forward">Fast forward</string>
+    <string name="key_input">Input</string>
+    <string name="key_tv_settings">TV settings</string>
+    <string name="key_guide">Guide</string>
+    <string name="key_info">Info</string>
+    <string name="key_channel_up">Channel up</string>
+    <string name="key_channel_down">Channel down</string>
+    <string name="remote_channel_group">Channel</string>
+    <string name="remote_label_volume">VOL</string>
+    <string name="remote_label_channel">CH</string>
     <string name="key_keyboard">Keyboard</string>
     <string name="remote_volume_group">Volume</string>
     <string name="remote_shortcuts_group">App shortcuts</string>

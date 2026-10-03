@@ -11,6 +11,17 @@ screen or make them smaller.
 - The connection card is **one line** by default.
 - The D-pad and transport keys stay in the same place, so muscle memory works in a dark room.
 
+### Layout rules for the keys
+
+- **Look like the object people know:** the keys sit on a centered remote body, in the places a physical TV remote
+  uses (mute and power on top, D-pad in the middle, VOL and CH rockers on both sides, app keys at the bottom). The
+  layout is symmetric; nothing important hangs on one side only.
+- **Aligned columns:** keys line up in three columns from row to row, so the eye and the thumb find them again.
+- **Color only where it means something:** OK and the keyboard key carry the accent; power is red; the mute key turns
+  red while muted; app keys use their own colors. Everything else is quiet.
+- **State shows on the key itself:** the keyboard key lights up when the TV asks for text; mute shows when muted.
+- **Physical places are fixed:** the same key is always in the same place, in every language.
+
 ## 2. Compact first, details on demand
 
 Show the three facts a person looks for (is it connected, is the TV on, volume and app) and keep everything else one
@@ -43,7 +54,7 @@ The documentation follows the same rule: a device is "verified" only with record
 ## 6. Feel native
 
 - Follow the system: light/dark theme by default, wallpaper colors (Material You) with the option to turn them off.
-- Controls are at least **48 x 48 dp** with 8 dp between them. This is tested (`TouchTargetTest`).
+- Controls are at least **48 x 48 dp** with 8 dp between them, also on a small phone. This is tested (`TouchTargetTest`, `RemoteLayoutTest`).
 - On wide screens the content stays a centered, readable column.
 - Standard Material components and behaviours (back, navigation, snackbars, sheets), no custom gestures to learn.
 

@@ -158,6 +158,21 @@ saved entry. Ambiguous names (two saved TVs, or one name announced twice) are ig
 addresses and the app used to lose the TV. Re-pairing a TV found at a new address replaces its entry instead of adding
 a duplicate (`TvRepository.savePaired`).
 
+**D32. The remote is laid out like a physical TV remote (v0.2.0).** A centered rounded body holds the keys in three
+aligned columns: mute and power, input and menu, the D-pad, back / keyboard / home (the keyboard where a remote has its
+microphone; there is no voice support), TV settings and guide, then VOL and CH rockers with play/pause and info between
+them, and the app keys as a three-column grid at the bottom. Two earlier drafts were rejected by the maintainer: a
+vertical volume rail beside the D-pad (unbalanced) and a single centered column (did not read as a remote). The model
+was a TCL Google TV remote. Rewind and fast forward were dropped as separate keys (not on the reference remote; the
+D-pad scrubs in most players). Brand logos are still not used (D21): app keys are colored letter circles. Tested as a
+whole (`RemoteLayoutTest`: every key present, 48 dp everywhere including a 320 dp phone, Hebrew).
+**Not done on purpose:** swiping on the D-pad or the rockers. A press sends its key immediately, so a swipe that starts
+on a key would first fire that key; making presses wait would add latency to every tap. A separate touchpad mode is
+listed in docs/ISSUES.md.
+
+**D33. New launcher icon: the D-pad as a symbol** (four quarter rings and the OK dot, the right ring lit). Original
+artwork as a vector drawable, with a separate monochrome layer for Android 13 themed icons.
+
 ## Testing
 
 **D24. Three layers.** (1) Pure JVM unit tests for framing, protobuf bytes, secret, certificates and identity store.
