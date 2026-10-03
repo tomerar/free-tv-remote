@@ -17,16 +17,19 @@ data class AppSettings(
     val useVolumeKeys: Boolean = true,
 )
 
-class SettingsRepository(private val store: DataStore<Preferences>) {
-    val settings: Flow<AppSettings> = store.data.map { prefs ->
-        val defaults = AppSettings()
-        AppSettings(
-            hapticsEnabled = prefs[HAPTICS] ?: defaults.hapticsEnabled,
-            keepScreenOn = prefs[KEEP_SCREEN_ON] ?: defaults.keepScreenOn,
-            theme = prefs[THEME]?.let { name -> ThemeMode.entries.firstOrNull { it.name == name } } ?: defaults.theme,
-            useVolumeKeys = prefs[VOLUME_KEYS] ?: defaults.useVolumeKeys,
-        )
-    }
+class SettingsRepository(
+    private val store: DataStore<Preferences>,
+) {
+    val settings: Flow<AppSettings> =
+        store.data.map { prefs ->
+            val defaults = AppSettings()
+            AppSettings(
+                hapticsEnabled = prefs[HAPTICS] ?: defaults.hapticsEnabled,
+                keepScreenOn = prefs[KEEP_SCREEN_ON] ?: defaults.keepScreenOn,
+                theme = prefs[THEME]?.let { name -> ThemeMode.entries.firstOrNull { it.name == name } } ?: defaults.theme,
+                useVolumeKeys = prefs[VOLUME_KEYS] ?: defaults.useVolumeKeys,
+            )
+        }
 
     suspend fun setHaptics(enabled: Boolean) {
         store.edit { it[HAPTICS] = enabled }

@@ -6,12 +6,12 @@ import androidx.datastore.preferences.core.Preferences
 import io.github.tomerar.freetvremote.protocol.tls.ClientIdentity
 import io.github.tomerar.freetvremote.protocol.tls.SelfSignedCertificate
 import io.github.tomerar.freetvremote.remote.IdentityProvider
-import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
+import java.io.File
 
 fun testDataStore(scope: CoroutineScope, dir: File, name: String = "test"): DataStore<Preferences> =
     PreferenceDataStoreFactory.create(scope = scope, produceFile = { File(dir, "$name.preferences_pb") })

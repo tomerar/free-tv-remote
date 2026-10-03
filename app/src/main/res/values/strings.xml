@@ -1,4 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Free TV Remote</string>
+
+    <!-- Common -->
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_add">Add</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_retry">Try again</string>
+    <string name="action_settings">Settings</string>
+
+    <!-- Connection status -->
+    <string name="status_connected">Connected</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_reconnecting">Reconnecting… (attempt %1$d)</string>
+    <string name="status_idle">Not connected</string>
+    <string name="status_not_paired">This phone is no longer paired with the TV</string>
+    <string name="status_cert_mismatch">The TV\'s security certificate changed</string>
+    <string name="status_no_tv">No TV selected</string>
+    <string name="action_reconnect">Reconnect</string>
+    <string name="action_pair_again">Pair again</string>
+    <string name="tv_power_on">TV is on</string>
+    <string name="tv_power_off">TV is off or in standby</string>
+    <string name="tv_volume">Volume %1$d of %2$d</string>
+    <string name="tv_volume_muted">Muted</string>
+    <string name="tv_current_app">Now showing: %1$s</string>
+
+    <!-- Remote screen -->
+    <string name="remote_dpad">Directional pad</string>
+    <string name="key_up">Up</string>
+    <string name="key_down">Down</string>
+    <string name="key_left">Left</string>
+    <string name="key_right">Right</string>
+    <string name="key_ok">OK</string>
+    <string name="key_back">Back</string>
+    <string name="key_home">Home</string>
+    <string name="key_menu">Menu</string>
+    <string name="key_volume_up">Volume up</string>
+    <string name="key_volume_down">Volume down</string>
+    <string name="key_mute">Mute</string>
+    <string name="key_power">Power</string>
+    <string name="key_play_pause">Play or pause</string>
+    <string name="key_rewind">Rewind</string>
+    <string name="key_forward">Fast forward</string>
+    <string name="key_keyboard">Keyboard</string>
+    <string name="remote_volume_group">Volume</string>
+    <string name="remote_shortcuts_group">App shortcuts</string>
+    <string name="remote_switch_tv">Switch TV</string>
+    <string name="remote_edit_shortcuts">Edit shortcuts</string>
+    <string name="remote_launch_shortcut">Open %1$s on the TV</string>
+
+    <!-- Keyboard -->
+    <string name="keyboard_title">Type on the TV</string>
+    <string name="keyboard_hint">Text to send</string>
+    <string name="keyboard_send">Send</string>
+    <string name="keyboard_enter">Enter</string>
+    <string name="keyboard_backspace">Backspace</string>
+    <string name="keyboard_note">Select a text field on the TV first. Typing works while the TV shows its on-screen keyboard.</string>
+
+    <!-- TVs -->
+    <string name="tvs_title">My TVs</string>
+    <string name="tvs_add">Add a TV</string>
+    <string name="tvs_active">In use</string>
+    <string name="tvs_empty">No TVs yet</string>
+    <string name="tvs_rename_title">Rename TV</string>
+    <string name="tvs_name_label">Name</string>
+    <string name="tvs_remove_title">Remove %1$s?</string>
+    <string name="tvs_remove_message">You will have to pair again to use this TV with the app.</string>
+
+    <!-- Discovery / onboarding -->
+    <string name="discover_title">Choose your TV</string>
+    <string name="discover_intro">Make sure your phone and TV are on the same Wi-Fi network and the TV is switched on.</string>
+    <string name="discover_scanning">Looking for TVs…</string>
+    <string name="discover_none">No TV found yet. You can also enter its IP address below.</string>
+    <string name="discover_error">Could not search the network. Check that Wi-Fi is on, or enter the IP address.</string>
+    <string name="discover_rescan">Search again</string>
+    <string name="discover_paired_badge">Paired</string>
+    <string name="discover_manual_title">Enter the IP address</string>
+    <string name="discover_manual_label">TV IP address</string>
+    <string name="discover_manual_hint">For example 192.168.1.20</string>
+    <string name="discover_manual_invalid">Enter a valid IP address</string>
+    <string name="discover_manual_connect">Pair</string>
+    <string name="discover_device_default_name">Android TV</string>
+    <string name="permission_title">Allow access to devices on your network</string>
+    <string name="permission_message">Android needs your permission before this app can find and talk to your TV on your home network. Nothing leaves your network.</string>
+    <string name="permission_grant">Allow</string>
+    <string name="permission_open_settings">Open app settings</string>
+    <string name="permission_banner">Allow network access to control your TV</string>
+
+    <!-- Pairing -->
+    <string name="pair_title">Pair with %1$s</string>
+    <string name="pair_connecting">Contacting the TV…</string>
+    <string name="pair_enter_code">Enter the 6-character code shown on your TV</string>
+    <string name="pair_code_label">Pairing code</string>
+    <string name="pair_code_invalid">That code is not right. Check the TV screen and try again.</string>
+    <string name="pair_submit">Pair</string>
+    <string name="pair_verifying">Checking the code…</string>
+    <string name="pair_success">Paired!</string>
+    <string name="pair_failed_unreachable">Could not reach the TV. Check that it is on and on the same Wi-Fi network.</string>
+    <string name="pair_failed_rejected">The TV did not accept the pairing. Start again and enter the new code.</string>
+    <string name="pair_failed_unexpected">The TV answered in an unexpected way. Make sure it supports the Android TV remote protocol.</string>
+    <string name="pair_cancel">Cancel pairing</string>
+
+    <!-- Shortcuts -->
+    <string name="shortcuts_title">App shortcuts</string>
+    <string name="shortcuts_intro">Buttons that open an app on the TV. Turn built-in ones on or off, or add your own deep link.</string>
+    <string name="shortcuts_add">Add custom shortcut</string>
+    <string name="shortcuts_name_label">Name</string>
+    <string name="shortcuts_link_label">Link</string>
+    <string name="shortcuts_link_hint">https://… or app://…</string>
+    <string name="shortcuts_invalid">Enter a name and a link such as https://example.com or app://open</string>
+    <string name="shortcuts_enabled">Show on the remote</string>
+    <string name="shortcuts_move_up">Move up</string>
+    <string name="shortcuts_move_down">Move down</string>
+    <string name="shortcuts_delete">Delete shortcut</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_remote">Remote</string>
+    <string name="settings_haptics">Haptic feedback</string>
+    <string name="settings_haptics_desc">Vibrate lightly when you press a button</string>
+    <string name="settings_keep_screen_on">Keep screen on</string>
+    <string name="settings_keep_screen_on_desc">Stop the phone from sleeping while the remote is open</string>
+    <string name="settings_volume_keys">Use phone volume buttons</string>
+    <string name="settings_volume_keys_desc">Control the TV volume with the phone\'s volume buttons</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="settings_section_manage">Manage</string>
+    <string name="settings_section_about">About</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_license">Free software under the GNU GPL v3. No ads, no accounts, no tracking.</string>
+    <string name="about_privacy">Everything stays on your local network. The app collects no data.</string>
+    <string name="about_source">Source code and issue tracker</string>
+
+    <!-- Quick Settings tile and widget -->
+    <string name="tile_label">TV power</string>
+    <string name="tile_subtitle_sent">Sent</string>
+    <string name="tile_subtitle_failed">Could not reach TV</string>
+    <string name="widget_description">Power and volume for your TV</string>
+    <string name="widget_failed">Could not reach the TV</string>
 </resources>

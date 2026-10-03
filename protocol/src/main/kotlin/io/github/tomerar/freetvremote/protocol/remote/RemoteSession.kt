@@ -10,7 +10,9 @@ import io.github.tomerar.freetvremote.protocol.tls.TlsSupport
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -117,6 +119,8 @@ public class RemoteSession(
         var earlyCloses = 0
         while (scope.isActive) {
             val outcome = runConnection()
+            // stop() cancels us while the socket is torn down: never publish state after that.
+            currentCoroutineContext().ensureActive()
             when (outcome) {
                 Outcome.PinMismatch -> {
                     return fail(FailureReason.CERTIFICATE_MISMATCH)

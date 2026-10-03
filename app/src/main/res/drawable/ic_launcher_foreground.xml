@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A simple original remote-control silhouette: body, D-pad ring and OK dot, two small buttons.
+         Even-odd fill turns the details into cut-outs so the same shape works as the themed (monochrome) icon. -->
+    <path
+        android:fillColor="#4FD8C4"
+        android:fillType="evenOdd"
+        android:pathData="M47,24h14a8,8 0 0 1 8,8v44a8,8 0 0 1 -8,8h-14a8,8 0 0 1 -8,-8v-44a8,8 0 0 1 8,-8z
+            M54,45m-10.2,0a10.2,10.2 0 1,0 20.4,0a10.2,10.2 0 1,0 -20.4,0
+            M54,45m-7.8,0a7.8,7.8 0 1,0 15.6,0a7.8,7.8 0 1,0 -15.6,0
+            M54,45m-3.2,0a3.2,3.2 0 1,0 6.4,0a3.2,3.2 0 1,0 -6.4,0
+            M48,68m-2.8,0a2.8,2.8 0 1,0 5.6,0a2.8,2.8 0 1,0 -5.6,0
+            M60,68m-2.8,0a2.8,2.8 0 1,0 5.6,0a2.8,2.8 0 1,0 -5.6,0" />
+</vector>

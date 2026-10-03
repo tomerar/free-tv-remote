@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Free TV Remote</string>
+
+    <!-- Common -->
+    <string name="action_back">חזרה</string>
+    <string name="action_cancel">ביטול</string>
+    <string name="action_save">שמירה</string>
+    <string name="action_add">הוספה</string>
+    <string name="action_remove">הסרה</string>
+    <string name="action_rename">שינוי שם</string>
+    <string name="action_retry">נסו שוב</string>
+    <string name="action_settings">הגדרות</string>
+
+    <!-- Connection status -->
+    <string name="status_connected">מחובר</string>
+    <string name="status_connecting">מתחבר…</string>
+    <string name="status_reconnecting">מתחבר מחדש… (ניסיון %1$d)</string>
+    <string name="status_idle">לא מחובר</string>
+    <string name="status_not_paired">הטלפון כבר אינו מותאם לטלוויזיה</string>
+    <string name="status_cert_mismatch">תעודת האבטחה של הטלוויזיה השתנתה</string>
+    <string name="status_no_tv">לא נבחרה טלוויזיה</string>
+    <string name="action_reconnect">התחברות מחדש</string>
+    <string name="action_pair_again">התאמה מחדש</string>
+    <string name="tv_power_on">הטלוויזיה דולקת</string>
+    <string name="tv_power_off">הטלוויזיה כבויה או במצב המתנה</string>
+    <string name="tv_volume">עוצמת שמע %1$d מתוך %2$d</string>
+    <string name="tv_volume_muted">מושתק</string>
+    <string name="tv_current_app">מוצג כעת: %1$s</string>
+
+    <!-- Remote screen -->
+    <string name="remote_dpad">לוח ניווט</string>
+    <string name="key_up">למעלה</string>
+    <string name="key_down">למטה</string>
+    <string name="key_left">שמאלה</string>
+    <string name="key_right">ימינה</string>
+    <string name="key_ok">אישור</string>
+    <string name="key_back">חזרה</string>
+    <string name="key_home">בית</string>
+    <string name="key_menu">תפריט</string>
+    <string name="key_volume_up">הגברת עוצמה</string>
+    <string name="key_volume_down">הנמכת עוצמה</string>
+    <string name="key_mute">השתקה</string>
+    <string name="key_power">הפעלה וכיבוי</string>
+    <string name="key_play_pause">ניגון או השהיה</string>
+    <string name="key_rewind">הרצה אחורה</string>
+    <string name="key_forward">הרצה קדימה</string>
+    <string name="key_keyboard">מקלדת</string>
+    <string name="remote_volume_group">עוצמת שמע</string>
+    <string name="remote_shortcuts_group">קיצורי אפליקציות</string>
+    <string name="remote_switch_tv">החלפת טלוויזיה</string>
+    <string name="remote_edit_shortcuts">עריכת קיצורים</string>
+    <string name="remote_launch_shortcut">פתיחת %1$s בטלוויזיה</string>
+
+    <!-- Keyboard -->
+    <string name="keyboard_title">הקלדה בטלוויזיה</string>
+    <string name="keyboard_hint">טקסט לשליחה</string>
+    <string name="keyboard_send">שליחה</string>
+    <string name="keyboard_enter">Enter</string>
+    <string name="keyboard_backspace">מחיקה אחורה</string>
+    <string name="keyboard_note">בחרו קודם שדה טקסט בטלוויזיה. ההקלדה עובדת כשהמקלדת שעל המסך מוצגת בטלוויזיה.</string>
+
+    <!-- TVs -->
+    <string name="tvs_title">הטלוויזיות שלי</string>
+    <string name="tvs_add">הוספת טלוויזיה</string>
+    <string name="tvs_active">בשימוש</string>
+    <string name="tvs_empty">עדיין אין טלוויזיות</string>
+    <string name="tvs_rename_title">שינוי שם הטלוויזיה</string>
+    <string name="tvs_name_label">שם</string>
+    <string name="tvs_remove_title">להסיר את %1$s?</string>
+    <string name="tvs_remove_message">כדי להשתמש בטלוויזיה הזו שוב באפליקציה תצטרכו לבצע התאמה מחדש.</string>
+
+    <!-- Discovery / onboarding -->
+    <string name="discover_title">בחרו את הטלוויזיה</string>
+    <string name="discover_intro">ודאו שהטלפון והטלוויזיה מחוברים לאותה רשת Wi-Fi ושהטלוויזיה דולקת.</string>
+    <string name="discover_scanning">מחפש טלוויזיות…</string>
+    <string name="discover_none">עדיין לא נמצאה טלוויזיה. אפשר גם להזין את כתובת ה-IP שלה למטה.</string>
+    <string name="discover_error">לא ניתן לסרוק את הרשת. בדקו ש-Wi-Fi פועל, או הזינו כתובת IP.</string>
+    <string name="discover_rescan">חיפוש מחדש</string>
+    <string name="discover_paired_badge">מותאם</string>
+    <string name="discover_manual_title">הזנת כתובת IP</string>
+    <string name="discover_manual_label">כתובת ה-IP של הטלוויזיה</string>
+    <string name="discover_manual_hint">לדוגמה 192.168.1.20</string>
+    <string name="discover_manual_invalid">הזינו כתובת IP תקינה</string>
+    <string name="discover_manual_connect">התאמה</string>
+    <string name="discover_device_default_name">Android TV</string>
+    <string name="permission_title">אפשרו גישה למכשירים ברשת שלכם</string>
+    <string name="permission_message">אנדרואיד דורשת את אישורכם לפני שהאפליקציה תוכל למצוא את הטלוויזיה ברשת הביתית ולתקשר איתה. שום מידע לא יוצא מהרשת שלכם.</string>
+    <string name="permission_grant">אישור</string>
+    <string name="permission_open_settings">פתיחת הגדרות האפליקציה</string>
+    <string name="permission_banner">אפשרו גישה לרשת כדי לשלוט בטלוויזיה</string>
+
+    <!-- Pairing -->
+    <string name="pair_title">התאמה עם %1$s</string>
+    <string name="pair_connecting">יוצר קשר עם הטלוויזיה…</string>
+    <string name="pair_enter_code">הזינו את הקוד בן 6 התווים שמוצג בטלוויזיה</string>
+    <string name="pair_code_label">קוד התאמה</string>
+    <string name="pair_code_invalid">הקוד שגוי. בדקו את מסך הטלוויזיה ונסו שוב.</string>
+    <string name="pair_submit">התאמה</string>
+    <string name="pair_verifying">בודק את הקוד…</string>
+    <string name="pair_success">ההתאמה הצליחה!</string>
+    <string name="pair_failed_unreachable">לא ניתן להגיע לטלוויזיה. ודאו שהיא דולקת ומחוברת לאותה רשת Wi-Fi.</string>
+    <string name="pair_failed_rejected">הטלוויזיה לא אישרה את ההתאמה. התחילו מחדש והזינו את הקוד החדש.</string>
+    <string name="pair_failed_unexpected">הטלוויזיה השיבה באופן בלתי צפוי. ודאו שהיא תומכת בפרוטוקול השלט של Android TV.</string>
+    <string name="pair_cancel">ביטול ההתאמה</string>
+
+    <!-- Shortcuts -->
+    <string name="shortcuts_title">קיצורי אפליקציות</string>
+    <string name="shortcuts_intro">כפתורים שפותחים אפליקציה בטלוויזיה. אפשר להפעיל או לכבות קיצורים מובנים, או להוסיף קישור עמוק משלכם.</string>
+    <string name="shortcuts_add">הוספת קיצור מותאם</string>
+    <string name="shortcuts_name_label">שם</string>
+    <string name="shortcuts_link_label">קישור</string>
+    <string name="shortcuts_link_hint">https://… או app://…</string>
+    <string name="shortcuts_invalid">הזינו שם וקישור כמו https://example.com או app://open</string>
+    <string name="shortcuts_enabled">הצגה בשלט</string>
+    <string name="shortcuts_move_up">הזזה למעלה</string>
+    <string name="shortcuts_move_down">הזזה למטה</string>
+    <string name="shortcuts_delete">מחיקת קיצור</string>
+
+    <!-- Settings -->
+    <string name="settings_title">הגדרות</string>
+    <string name="settings_section_remote">שלט</string>
+    <string name="settings_haptics">משוב רטט</string>
+    <string name="settings_haptics_desc">רטט קל בלחיצה על כפתור</string>
+    <string name="settings_keep_screen_on">שמירה על מסך דלוק</string>
+    <string name="settings_keep_screen_on_desc">מונע מהטלפון להירדם בזמן שהשלט פתוח</string>
+    <string name="settings_volume_keys">שימוש בכפתורי עוצמת השמע של הטלפון</string>
+    <string name="settings_volume_keys_desc">שליטה בעוצמת השמע של הטלוויזיה בעזרת כפתורי הטלפון</string>
+    <string name="settings_theme">ערכת נושא</string>
+    <string name="theme_system">לפי המערכת</string>
+    <string name="theme_dark">כהה</string>
+    <string name="theme_light">בהירה</string>
+    <string name="settings_section_manage">ניהול</string>
+    <string name="settings_section_about">אודות</string>
+    <string name="about_version">גרסה %1$s</string>
+    <string name="about_license">תוכנה חופשית ברישיון GNU GPL v3. בלי פרסומות, בלי חשבונות ובלי מעקב.</string>
+    <string name="about_privacy">הכול נשאר ברשת המקומית שלכם. האפליקציה לא אוספת מידע.</string>
+    <string name="about_source">קוד מקור ומעקב תקלות</string>
+
+    <!-- Quick Settings tile and widget -->
+    <string name="tile_label">הפעלת הטלוויזיה</string>
+    <string name="tile_subtitle_sent">נשלח</string>
+    <string name="tile_subtitle_failed">לא ניתן להגיע לטלוויזיה</string>
+    <string name="widget_description">הפעלה ועוצמת שמע לטלוויזיה</string>
+    <string name="widget_failed">לא ניתן להגיע לטלוויזיה</string>
+</resources>

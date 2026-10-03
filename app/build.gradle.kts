@@ -8,10 +8,11 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-val keystoreProps = Properties().apply {
-    val f = rootProject.file("keystore.properties")
-    if (f.exists()) f.inputStream().use { load(it) }
-}
+val keystoreProps =
+    Properties().apply {
+        val f = rootProject.file("keystore.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
 
 fun signingValue(propKey: String, envKey: String): String? =
     keystoreProps.getProperty(propKey) ?: System.getenv(envKey)

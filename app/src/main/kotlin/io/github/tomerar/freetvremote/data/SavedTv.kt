@@ -1,7 +1,7 @@
 package io.github.tomerar.freetvremote.data
 
-import java.util.Base64
 import kotlinx.serialization.Serializable
+import java.util.Base64
 
 /** A paired TV. [pin] is the Base64 SHA-256 of the TV's public key, recorded at pairing time. */
 @Serializable

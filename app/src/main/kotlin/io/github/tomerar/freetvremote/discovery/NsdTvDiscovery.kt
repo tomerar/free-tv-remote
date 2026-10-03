@@ -4,61 +4,70 @@ import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executor
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 
 /** mDNS discovery of `_androidtvremote2._tcp` through the platform [NsdManager] (no extra dependencies). */
-class NsdTvDiscovery(context: Context) : TvDiscovery {
+class NsdTvDiscovery(
+    context: Context,
+) : TvDiscovery {
     private val appContext = context.applicationContext
     private val nsd = appContext.getSystemService(Context.NSD_SERVICE) as NsdManager
 
-    override fun discover(): Flow<List<DiscoveredTv>> = callbackFlow {
-        val found = ConcurrentHashMap<String, DiscoveredTv>()
-        fun publish() {
-            trySend(found.values.sortedBy { it.name.lowercase() })
-        }
+    override fun discover(): Flow<List<DiscoveredTv>> =
+        callbackFlow {
+            val found = ConcurrentHashMap<String, DiscoveredTv>()
 
-        val resolver = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            ModernResolver(nsd, ContextCompat.getMainExecutor(appContext), found, ::publish)
-        } else {
-            LegacyResolver(nsd, found, ::publish)
-        }
-
-        val listener = object : NsdManager.DiscoveryListener {
-            override fun onDiscoveryStarted(serviceType: String) = Unit
-
-            override fun onServiceFound(serviceInfo: NsdServiceInfo) {
-                resolver.resolve(serviceInfo)
+            fun publish() {
+                trySend(found.values.sortedBy { it.name.lowercase() })
             }
 
-            override fun onServiceLost(serviceInfo: NsdServiceInfo) {
-                resolver.lost(serviceInfo)
-                found.remove(serviceInfo.serviceName)
-                publish()
+            val resolver =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    ModernResolver(nsd, ContextCompat.getMainExecutor(appContext), found, ::publish)
+                } else {
+                    LegacyResolver(nsd, found, ::publish)
+                }
+
+            val listener =
+                object : NsdManager.DiscoveryListener {
+                    override fun onDiscoveryStarted(serviceType: String) = Unit
+
+                    override fun onServiceFound(serviceInfo: NsdServiceInfo) {
+                        resolver.resolve(serviceInfo)
+                    }
+
+                    override fun onServiceLost(serviceInfo: NsdServiceInfo) {
+                        resolver.lost(serviceInfo)
+                        found.remove(serviceInfo.serviceName)
+                        publish()
+                    }
+
+                    override fun onDiscoveryStopped(serviceType: String) = Unit
+
+                    override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
+                        close(DiscoveryException("start failed: $errorCode"))
+                    }
+
+                    override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) = Unit
+                }
+
+            trySend(emptyList())
+            nsd.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, listener)
+            awaitClose {
+                runCatching { nsd.stopServiceDiscovery(listener) }
+                resolver.close()
             }
-
-            override fun onDiscoveryStopped(serviceType: String) = Unit
-
-            override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
-                close(DiscoveryException("start failed: $errorCode"))
-            }
-
-            override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) = Unit
         }
 
-        trySend(emptyList())
-        nsd.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, listener)
-        awaitClose {
-            runCatching { nsd.stopServiceDiscovery(listener) }
-            resolver.close()
-        }
-    }
-
-    class DiscoveryException(message: String) : Exception(message)
+    class DiscoveryException(
+        message: String,
+    ) : Exception(message)
 
     private interface Resolver {
         fun resolve(info: NsdServiceInfo)
@@ -69,6 +78,7 @@ class NsdTvDiscovery(context: Context) : TvDiscovery {
     }
 
     /** API 34+: a per-service callback that stays registered and reports address changes. */
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private class ModernResolver(
         private val nsd: NsdManager,
         private val executor: Executor,
@@ -79,22 +89,23 @@ class NsdTvDiscovery(context: Context) : TvDiscovery {
 
         override fun resolve(info: NsdServiceInfo) {
             if (callbacks.containsKey(info.serviceName)) return
-            val callback = object : NsdManager.ServiceInfoCallback {
-                override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) {
-                    callbacks.remove(info.serviceName)
-                }
+            val callback =
+                object : NsdManager.ServiceInfoCallback {
+                    override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) {
+                        callbacks.remove(info.serviceName)
+                    }
 
-                override fun onServiceUpdated(serviceInfo: NsdServiceInfo) {
-                    record(serviceInfo, found, publish)
-                }
+                    override fun onServiceUpdated(serviceInfo: NsdServiceInfo) {
+                        record(serviceInfo, found, publish)
+                    }
 
-                override fun onServiceLost() {
-                    found.remove(info.serviceName)
-                    publish()
-                }
+                    override fun onServiceLost() {
+                        found.remove(info.serviceName)
+                        publish()
+                    }
 
-                override fun onServiceInfoCallbackUnregistered() = Unit
-            }
+                    override fun onServiceInfoCallbackUnregistered() = Unit
+                }
             callbacks[info.serviceName] = callback
             nsd.registerServiceInfoCallback(info, executor, callback)
         }

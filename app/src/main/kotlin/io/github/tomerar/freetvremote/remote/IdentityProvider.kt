@@ -12,11 +12,14 @@ fun interface IdentityProvider {
     suspend fun get(): ClientIdentity
 }
 
-class StoredIdentityProvider(private val store: IdentityStore) : IdentityProvider {
+class StoredIdentityProvider(
+    private val store: IdentityStore,
+) : IdentityProvider {
     private val mutex = Mutex()
     private var cached: ClientIdentity? = null
 
-    override suspend fun get(): ClientIdentity = mutex.withLock {
-        cached ?: withContext(Dispatchers.IO) { store.loadOrCreate() }.also { cached = it }
-    }
+    override suspend fun get(): ClientIdentity =
+        mutex.withLock {
+            cached ?: withContext(Dispatchers.IO) { store.loadOrCreate() }.also { cached = it }
+        }
 }

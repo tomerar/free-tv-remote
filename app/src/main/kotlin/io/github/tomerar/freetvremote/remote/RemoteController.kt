@@ -49,6 +49,8 @@ class RemoteController(
 ) : KeySender {
     private val session = MutableStateFlow<RemoteSession?>(null)
     private val _activeTv = MutableStateFlow<SavedTv?>(null)
+
+    @Volatile
     private var foreground = false
     private var disconnectJob: Job? = null
     private var started = false
@@ -56,13 +58,15 @@ class RemoteController(
     /** The TV currently selected (not necessarily connected). */
     val activeTv: StateFlow<SavedTv?> = _activeTv
 
-    val connection: StateFlow<ConnectionState> = session
-        .flatMapLatest { it?.connectionState ?: flowOf(ConnectionState.Idle) }
-        .stateIn(scope, SharingStarted.Eagerly, ConnectionState.Idle)
+    val connection: StateFlow<ConnectionState> =
+        session
+            .flatMapLatest { it?.connectionState ?: flowOf(ConnectionState.Idle) }
+            .stateIn(scope, SharingStarted.Eagerly, ConnectionState.Idle)
 
-    val tvState: StateFlow<TvState> = session
-        .flatMapLatest { it?.tvState ?: flowOf(TvState()) }
-        .stateIn(scope, SharingStarted.Eagerly, TvState())
+    val tvState: StateFlow<TvState> =
+        session
+            .flatMapLatest { it?.tvState ?: flowOf(TvState()) }
+            .stateIn(scope, SharingStarted.Eagerly, TvState())
 
     /** Call once at startup: selects the last used TV so the app reconnects automatically. */
     fun start() {
@@ -78,17 +82,21 @@ class RemoteController(
     private suspend fun apply(target: SavedTv?) {
         val current = _activeTv.value
         if (target == current) return
-        val sameConnectionTarget = current != null && target != null &&
-            current.id == target.id && current.host == target.host && current.pin == target.pin &&
-            current.remotePort == target.remotePort
-        _activeTv.value = target
-        if (sameConnectionTarget) return // only the display name changed
-        session.value?.stop()
-        session.value = null
-        if (target != null) {
-            session.value = factory.create(scope, target)
-            if (foreground) session.value?.start()
+        val sameConnectionTarget =
+            current != null && target != null &&
+                current.id == target.id && current.host == target.host && current.pin == target.pin &&
+                current.remotePort == target.remotePort
+        if (sameConnectionTarget) {
+            _activeTv.value = target // only the display name changed
+            return
         }
+        // Swap sessions first so that observers never see the new TV paired with the old connection state.
+        val replacement = target?.let { factory.create(scope, it) }
+        val old = session.value
+        session.value = replacement
+        _activeTv.value = target
+        old?.stop()
+        if (foreground) replacement?.start()
     }
 
     /** Switches to another saved TV and remembers it as the last used one. */
@@ -106,10 +114,11 @@ class RemoteController(
     fun onAppBackground() {
         foreground = false
         disconnectJob?.cancel()
-        disconnectJob = scope.launch {
-            delay(backgroundGraceMs)
-            if (!foreground) session.value?.stop()
-        }
+        disconnectJob =
+            scope.launch {
+                delay(backgroundGraceMs)
+                if (!foreground) session.value?.stop()
+            }
     }
 
     /** Manual retry, e.g. after the connection ended in a failure state. */
@@ -148,9 +157,10 @@ class RemoteController(
         val temporary = factory.create(scope, tv)
         return try {
             temporary.start()
-            val state = withTimeoutOrNull(quickConnectTimeoutMs) {
-                temporary.connectionState.first { it == ConnectionState.Connected || it is ConnectionState.Failed }
-            }
+            val state =
+                withTimeoutOrNull(quickConnectTimeoutMs) {
+                    temporary.connectionState.first { it == ConnectionState.Connected || it is ConnectionState.Failed }
+                }
             state == ConnectionState.Connected && temporary.sendKey(code, RemoteDirection.SHORT).also { delay(QUICK_FLUSH_MS) }
         } finally {
             temporary.stop()

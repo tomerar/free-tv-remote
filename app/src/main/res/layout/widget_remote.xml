@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:padding="4dp">
+
+    <ImageButton
+        android:id="@+id/widget_power"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/key_power"
+        android:src="@drawable/ic_power"
+        android:tint="#FFFF8A80" />
+
+    <ImageButton
+        android:id="@+id/widget_volume_down"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/key_volume_down"
+        android:src="@drawable/ic_volume_down"
+        android:tint="#FFE2E8E7" />
+
+    <ImageButton
+        android:id="@+id/widget_volume_up"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/key_volume_up"
+        android:src="@drawable/ic_volume_up"
+        android:tint="#FFE2E8E7" />
+
+    <ImageButton
+        android:id="@+id/widget_mute"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/key_mute"
+        android:src="@drawable/ic_volume_off"
+        android:tint="#FFE2E8E7" />
+</LinearLayout>

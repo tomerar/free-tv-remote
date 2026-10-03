@@ -4,13 +4,15 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.builtins.ListSerializer
+import java.util.UUID
 
 /** The configurable app shortcut buttons: built-ins can be toggled, custom ones added and removed. */
-class ShortcutsRepository(private val store: DataStore<Preferences>) {
+class ShortcutsRepository(
+    private val store: DataStore<Preferences>,
+) {
     private val serializer = ListSerializer(AppShortcut.serializer())
 
     /** All shortcuts, enabled or not, in display order. */

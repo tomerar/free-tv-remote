@@ -38,9 +38,14 @@ class KeyGestures(
     private val sender: KeySender,
     private val timing: GestureTiming = GestureTiming(),
 ) {
-    private class Active(val job: Job, val longStarted: BooleanHolder)
+    private class Active(
+        val job: Job,
+        val longStarted: BooleanHolder,
+    )
 
-    private class BooleanHolder(@Volatile var value: Boolean = false)
+    private class BooleanHolder(
+        @Volatile var value: Boolean = false,
+    )
 
     private val active = HashMap<Int, Active>()
 
@@ -48,23 +53,25 @@ class KeyGestures(
     fun down(code: Int, behavior: KeyBehavior) {
         if (active.containsKey(code)) return
         val longStarted = BooleanHolder()
-        val job = scope.launch {
-            when (behavior) {
-                KeyBehavior.REPEAT -> {
-                    sender.tap(code)
-                    delay(timing.repeatDelayMs)
-                    while (true) {
+        val job =
+            scope.launch {
+                when (behavior) {
+                    KeyBehavior.REPEAT -> {
                         sender.tap(code)
-                        delay(timing.repeatIntervalMs)
+                        delay(timing.repeatDelayMs)
+                        while (true) {
+                            sender.tap(code)
+                            delay(timing.repeatIntervalMs)
+                        }
+                    }
+
+                    KeyBehavior.TAP_OR_LONG -> {
+                        delay(timing.longPressMs)
+                        longStarted.value = true
+                        sender.holdStart(code)
                     }
                 }
-                KeyBehavior.TAP_OR_LONG -> {
-                    delay(timing.longPressMs)
-                    longStarted.value = true
-                    sender.holdStart(code)
-                }
             }
-        }
         active[code] = Active(job, longStarted)
     }
 

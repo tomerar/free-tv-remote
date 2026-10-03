@@ -31,13 +31,19 @@ sealed interface PairingState {
     data object Connecting : PairingState
 
     /** The TV shows a code. [lastCodeWasInvalid] is set after a mistyped code. */
-    data class AwaitingCode(val lastCodeWasInvalid: Boolean = false) : PairingState
+    data class AwaitingCode(
+        val lastCodeWasInvalid: Boolean = false,
+    ) : PairingState
 
     data object Verifying : PairingState
 
-    data class Success(val tv: SavedTv) : PairingState
+    data class Success(
+        val tv: SavedTv,
+    ) : PairingState
 
-    data class Failed(val reason: PairingFailure) : PairingState
+    data class Failed(
+        val reason: PairingFailure,
+    ) : PairingState
 }
 
 fun interface PairingClientFactory {
@@ -58,7 +64,12 @@ class PairingCoordinator(
     private var session: PairingSession? = null
     private var target: Target? = null
 
-    private data class Target(val name: String, val host: String, val pairingPort: Int, val remotePort: Int)
+    private data class Target(
+        val name: String,
+        val host: String,
+        val pairingPort: Int,
+        val remotePort: Int,
+    )
 
     fun start(
         name: String,
@@ -69,14 +80,15 @@ class PairingCoordinator(
         cancel()
         target = Target(name, host, pairingPort, remotePort)
         _state.value = PairingState.Connecting
-        job = scope.launch {
-            try {
-                session = clients.create(identity.get(), host, pairingPort).begin()
-                _state.value = PairingState.AwaitingCode()
-            } catch (e: PairingException) {
-                _state.value = PairingState.Failed(e.toFailure())
+        job =
+            scope.launch {
+                try {
+                    session = clients.create(identity.get(), host, pairingPort).begin()
+                    _state.value = PairingState.AwaitingCode()
+                } catch (e: PairingException) {
+                    _state.value = PairingState.Failed(e.toFailure())
+                }
             }
-        }
     }
 
     /** Submits what the user typed. A mistyped code keeps the session open for another try. */
@@ -89,19 +101,20 @@ class PairingCoordinator(
             return
         }
         _state.value = PairingState.Verifying
-        job = scope.launch {
-            try {
-                val certificate = current.submitCode(rawCode)
-                val saved = tvs.savePaired(info.name, info.host, certificate.publicKeyPin(), info.remotePort, info.pairingPort)
-                closeSession()
-                _state.value = PairingState.Success(saved)
-            } catch (e: PairingException.InvalidCode) {
-                _state.value = PairingState.AwaitingCode(lastCodeWasInvalid = true)
-            } catch (e: PairingException) {
-                closeSession()
-                _state.value = PairingState.Failed(e.toFailure())
+        job =
+            scope.launch {
+                try {
+                    val certificate = current.submitCode(rawCode)
+                    val saved = tvs.savePaired(info.name, info.host, certificate.publicKeyPin(), info.remotePort, info.pairingPort)
+                    closeSession()
+                    _state.value = PairingState.Success(saved)
+                } catch (e: PairingException.InvalidCode) {
+                    _state.value = PairingState.AwaitingCode(lastCodeWasInvalid = true)
+                } catch (e: PairingException) {
+                    closeSession()
+                    _state.value = PairingState.Failed(e.toFailure())
+                }
             }
-        }
     }
 
     /** Aborts any attempt in progress and returns to [PairingState.Idle]. */
@@ -117,10 +130,10 @@ class PairingCoordinator(
         session = null
     }
 
-    private fun PairingException.toFailure(): PairingFailure = when (this) {
-        is PairingException.ConnectionFailed -> PairingFailure.UNREACHABLE
-        is PairingException.Rejected, is PairingException.InvalidCode -> PairingFailure.REJECTED
-        is PairingException.ProtocolError -> PairingFailure.UNEXPECTED
-    }
+    private fun PairingException.toFailure(): PairingFailure =
+        when (this) {
+            is PairingException.ConnectionFailed -> PairingFailure.UNREACHABLE
+            is PairingException.Rejected, is PairingException.InvalidCode -> PairingFailure.REJECTED
+            is PairingException.ProtocolError -> PairingFailure.UNEXPECTED
+        }
 }
-

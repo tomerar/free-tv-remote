@@ -4,14 +4,16 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.builtins.ListSerializer
+import java.util.UUID
 
 /** Persists the paired TVs and which one was used last. */
-class TvRepository(private val store: DataStore<Preferences>) {
+class TvRepository(
+    private val store: DataStore<Preferences>,
+) {
     private val listSerializer = ListSerializer(SavedTv.serializer())
 
     val tvs: Flow<List<SavedTv>> = store.data.map { decode(it[TVS_KEY]) }
@@ -19,10 +21,11 @@ class TvRepository(private val store: DataStore<Preferences>) {
     val lastUsedId: Flow<String?> = store.data.map { it[LAST_USED_KEY] }
 
     /** The TV to reconnect to: the last used one if it still exists, otherwise the first saved one. */
-    val lastUsed: Flow<SavedTv?> = store.data.map { prefs ->
-        val all = decode(prefs[TVS_KEY])
-        all.firstOrNull { it.id == prefs[LAST_USED_KEY] } ?: all.firstOrNull()
-    }
+    val lastUsed: Flow<SavedTv?> =
+        store.data.map { prefs ->
+            val all = decode(prefs[TVS_KEY])
+            all.firstOrNull { it.id == prefs[LAST_USED_KEY] } ?: all.firstOrNull()
+        }
 
     /**
      * Adds a freshly paired TV, or replaces the entry with the same host (re-pairing).
@@ -33,14 +36,15 @@ class TvRepository(private val store: DataStore<Preferences>) {
         store.edit { prefs ->
             val all = decode(prefs[TVS_KEY])
             val existing = all.firstOrNull { it.host == host && it.remotePort == remotePort }
-            val entry = SavedTv(
-                id = existing?.id ?: UUID.randomUUID().toString(),
-                name = existing?.name ?: name,
-                host = host,
-                pin = SavedTv.encodePin(pin),
-                remotePort = remotePort,
-                pairingPort = pairingPort,
-            )
+            val entry =
+                SavedTv(
+                    id = existing?.id ?: UUID.randomUUID().toString(),
+                    name = existing?.name ?: name,
+                    host = host,
+                    pin = SavedTv.encodePin(pin),
+                    remotePort = remotePort,
+                    pairingPort = pairingPort,
+                )
             prefs[TVS_KEY] = AppJson.encodeToString(listSerializer, all.filterNot { it.id == entry.id } + entry)
             prefs[LAST_USED_KEY] = entry.id
             saved = entry
