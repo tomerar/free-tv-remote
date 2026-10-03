@@ -32,3 +32,14 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.coroutines.test)
 }
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+    source.setFrom("src/main/kotlin", "src/test/kotlin", "src/testFixtures/kotlin")
+}
+
+ktlint {
+    version.set("1.8.0")
+    android.set(false)
+}
