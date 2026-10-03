@@ -48,13 +48,23 @@ This app is built to be small, private, auditable and friendly to F-Droid and to
 
 ## Install
 
+> **Step by step:** [docs/INSTALL.md](docs/INSTALL.md)
+
+The quickest way, no account needed:
+
+1. On your Android phone open the **[Releases](../../releases)** page and download the newest
+   `FreeTVRemote-<version>.apk`.
+2. Open the file. If Android asks, allow your browser / file manager to **install unknown apps**.
+3. Tap **Install**, then open **Free TV Remote** and pair with your TV (see below).
+
 | Source | Status |
 | --- | --- |
-| **GitHub Releases** | APKs are attached to each [release](../../releases) |
+| **GitHub Releases** (APK + SHA-256 checksum) | Tag a version to publish; see [docs/INSTALL.md](docs/INSTALL.md) |
+| **Latest development build** | Download the `debug-apk` artifact from the newest green run in the [Actions](../../actions) tab |
 | **F-Droid** | Planned; the Fastlane metadata is already in [`fastlane/metadata/android`](fastlane/metadata/android) |
 | **Build it yourself** | See [Building](#building) |
 
-Requires Android 8.0 (API 26) or newer. On Android 17 and newer, Android asks you to allow access to
+Requires **Android 8.0 (API 26) or newer**. On Android 17 and newer, Android asks you to allow access to
 devices on the local network; the app cannot work without that permission.
 
 ## Getting started: pair in three steps

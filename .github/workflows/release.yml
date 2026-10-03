@@ -1,8 +1,11 @@
 name: Release
 
+# Tag a version (git tag v0.1.0 && git push --tags) to publish a GitHub Release with an installable APK.
+# "Run workflow" (manual) builds the same APK as a downloadable artifact without publishing a release.
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -10,7 +13,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -27,31 +30,62 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Decode signing key (optional)
+      - name: Prepare signing key
         env:
           SIGNING_KEY_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
           if [ -n "$SIGNING_KEY_BASE64" ]; then
             echo "$SIGNING_KEY_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
             echo "SIGNING_STORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
-            echo "Signing key found: the APK will be signed."
+            echo "SIGNING_STORE_PASSWORD=$SIGNING_STORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "SIGNING_KEY_ALIAS=$SIGNING_KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD" >> "$GITHUB_ENV"
+            echo "SIGNING_KIND=project key" >> "$GITHUB_ENV"
           else
-            echo "No signing key configured: the APK will be unsigned."
+            # No project key configured: sign with a one-off key so the APK is still installable.
+            # Android only allows updating an app with the same key, so such builds cannot update each other.
+            PASS=$(openssl rand -hex 16)
+            keytool -genkeypair -keystore "$RUNNER_TEMP/release.jks" -storepass "$PASS" -keypass "$PASS" \
+              -alias release -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Free TV Remote CI build"
+            echo "SIGNING_STORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "SIGNING_STORE_PASSWORD=$PASS" >> "$GITHUB_ENV"
+            echo "SIGNING_KEY_ALIAS=release" >> "$GITHUB_ENV"
+            echo "SIGNING_KEY_PASSWORD=$PASS" >> "$GITHUB_ENV"
+            echo "SIGNING_KIND=one-off CI key" >> "$GITHUB_ENV"
           fi
 
-      - name: Build release APK
-        env:
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      - name: Build and test
         run: ./gradlew check assembleRelease --stacktrace
+
+      - name: Verify the signature and name the APK
+        run: |
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | tail -1)
+          SRC=app/build/outputs/apk/release/app-release.apk
+          "$APKSIGNER" verify --verbose "$SRC"
+          NAME="FreeTVRemote-${GITHUB_REF_NAME//\//-}.apk"
+          mkdir -p dist
+          cp "$SRC" "dist/$NAME"
+          (cd dist && sha256sum "$NAME" > "$NAME.sha256")
+          echo "Signed with: $SIGNING_KIND"
+          cat "dist/$NAME.sha256"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: release-apk
-          path: app/build/outputs/apk/release/*.apk
+          name: FreeTVRemote-apk
+          path: dist/*
 
       - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
         with:
-          files: app/build/outputs/apk/release/*.apk
+          files: dist/*
           generate_release_notes: true
+          body: |
+            ## Install
+            1. Download the `.apk` file below on your Android phone (Android 8.0 or newer).
+            2. Open it. If Android asks, allow your browser or file manager to **install unknown apps**.
+            3. Tap **Install**, then open **Free TV Remote** and follow the pairing steps.
+
+            Optional: check the download against the `.sha256` file. Full guide: https://github.com/${{ github.repository }}/blob/main/docs/INSTALL.md
