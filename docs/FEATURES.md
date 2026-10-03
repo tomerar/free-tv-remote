@@ -7,8 +7,17 @@
   are found; tapping one stops the search.
 - **Clear outcomes.** If nothing is found the app says so, lists what to check (same Wi-Fi, TV on, permission), and
   opens the manual entry. Manual entry accepts an IPv4 address or a host name.
-- **Already paired? No second pairing.** Tapping a TV marked *Paired* (or typing its address) selects it and opens the
-  remote right away. Pairing again is offered only when the connection reports it is needed (*Pair again*).
+- **Saved and available, like Wi-Fi settings.** The TV screen lists your **saved TVs** at the top, always, even before
+  searching; tapping one selects it and opens the remote right away, with no code. A saved TV that answers the search
+  is marked *On this network*. Below, **available TVs** are only the new ones that can be paired. Typing the address
+  of a saved TV also just opens the remote. Pairing again is offered only when the connection reports it is needed
+  (*Pair again*).
+- **Finds a TV again when its address changes.** When the router gives a saved TV a new address, the next search
+  recognises it by the name it announces on the network and updates the saved address, so you do not pair it again.
+  Before changing anything the app checks that the device at the new address presents the key pinned at pairing (a
+  TLS handshake only, nothing is sent), so another TV with the same name, for example at someone else's home, can
+  never take over a saved entry. TVs paired before v0.1.9 are recognised by their original name unless you renamed
+  them; TVs added by typing an address are not recognised this way.
 - **Pair once.** The TV shows a 6-character code; type it in. A mistyped code lets you try again without starting
   over. The TV's public key is pinned afterwards, so another device cannot impersonate it.
 - **Local-network permission.** On Android 17 and newer the app asks for access to devices on the local network and

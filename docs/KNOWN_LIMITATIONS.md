@@ -3,22 +3,20 @@
 What is known not to work, or not to be verified, today. Items marked *verified in code* were confirmed by
 reading and exercising the code; none of these were observed on a physical TV.
 
-## A saved TV is not found again after its IP address changes (verified in code)
+## A saved TV whose address changed is found again only in some cases
 
-A saved TV connects only to the address stored when it was paired. `TvRepository.updateHost()` exists but
-nothing calls it, and discovery runs only on the "Choose your TV" screen. If the router gives the TV a new
-address, the remote stays on "Reconnecting" indefinitely and offers no way to edit the address.
+Since v0.1.9, a search recognises a saved TV that moved to a new address by the name it announces on the network, checks
+that the device presents the pinned key, and updates the saved address. This does **not** cover:
 
-Workaround today: remove the TV (Settings > My TVs) and add it again. Pairing again from the discovery list
-creates a new entry because entries are matched by address, so the old entry must be removed by hand.
+- TVs added by typing an address (the app never learned their network name);
+- TVs saved before v0.1.9 **and** renamed by the user (the original name is the only link); pairing them again once
+  records the network name;
+- the moment between the address change and the next search: the app keeps trying the old address, shows the
+  connection as failing, and the fix is to open *Add a TV* and search (no new pairing is needed);
+- two TVs announcing the same name, which is ignored on purpose because guessing could point an entry at the wrong
+  device.
 
-**Safe approach (not implemented):** after several consecutive "unreachable" outcomes in the foreground, run
-discovery for a few seconds and, for each candidate, open a TLS connection **verified against the pinned key of the
-saved TV** (no commands sent). Only a candidate that presents that exact key may replace the stored host
-(`updateHost`). The mDNS name is never trusted as identity, certificate checks stay strict, and no duplicate is
-created because the existing entry is updated in place. Needs a small "probe" API in the protocol module, a
-discovery lifecycle in `RemoteController`, the local-network permission check, and tests against `FakeTv`.
-Also worth adding: after N failed reconnects show "its address may have changed" with a shortcut to re-add the TV.
+How this behaves on real routers and TVs has not been verified on hardware (TESTING.md, H3).
 
 ## Navigation keys are dropped silently while disconnected (verified in code)
 

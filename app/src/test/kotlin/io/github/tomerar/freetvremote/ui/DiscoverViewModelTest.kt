@@ -40,7 +40,20 @@ class DiscoverViewModelTest {
         durationMs: Long = 1_000,
         saved: List<SavedTv> = emptyList(),
         selected: MutableList<String> = mutableListOf(),
-    ) = DiscoverViewModel(discovery, flowOf(saved), scanDurationMs = durationMs, selectTv = { selected += it })
+        sameTv: Boolean = true,
+        recorded: MutableList<Triple<String, String, String?>> = mutableListOf(),
+        confirmed: MutableList<String> = mutableListOf(),
+    ) = DiscoverViewModel(
+        discovery,
+        flowOf(saved),
+        scanDurationMs = durationMs,
+        selectTv = { selected += it },
+        confirmSameTv = { _, host ->
+            confirmed += host
+            sameTv
+        },
+        recordAddress = { id, host, name -> recorded += Triple(id, host, name) },
+    )
 
     private val savedTv = SavedTv(id = "tv-1", name = "Living Room TV", host = "192.168.1.20", pin = "AA==")
 
@@ -140,7 +153,7 @@ class DiscoverViewModelTest {
             val selected = mutableListOf<String>()
             val vm = viewModel(OpenDiscovery(), saved = listOf(savedTv), selected = selected)
             val events = mutableListOf<String>()
-            vm.choose("192.168.1.20", "Living Room TV", { h, _ -> events += "pair $h" }, { events += "remote" })
+            vm.choose("192.168.1.20", "Living Room TV", null, { h, _, _ -> events += "pair $h" }, { events += "remote" })
             runCurrent()
             assertEquals(listOf("tv-1"), selected)
             assertEquals(listOf("remote"), events)
@@ -152,10 +165,10 @@ class DiscoverViewModelTest {
             val selected = mutableListOf<String>()
             val vm = viewModel(OpenDiscovery(), saved = listOf(savedTv), selected = selected)
             val events = mutableListOf<String>()
-            vm.choose("192.168.1.31", "Bedroom", { h, n -> events += "pair $h $n" }, { events += "remote" })
+            vm.choose("192.168.1.31", "Bedroom", "Bedroom", { h, n, svc -> events += "pair $h $n $svc" }, { events += "remote" })
             runCurrent()
             assertEquals(emptyList<String>(), selected)
-            assertEquals(listOf("pair 192.168.1.31 Bedroom"), events)
+            assertEquals(listOf("pair 192.168.1.31 Bedroom Bedroom"), events)
         }
 
     @Test
@@ -167,8 +180,101 @@ class DiscoverViewModelTest {
             vm.startScan()
             runCurrent()
             assertEquals(1, discovery.active.get())
-            vm.choose("192.168.1.20", "Living Room TV", { _, _ -> }, {})
+            vm.choose("192.168.1.20", "Living Room TV", null, { _, _, _ -> }, {})
             runCurrent()
             assertEquals(0, discovery.active.get())
+        }
+
+    private val shield = SavedTv(id = "tv-2", name = "Living room", host = "192.168.1.30", pin = "AA==", serviceName = "nvidia")
+
+    private suspend fun kotlinx.coroutines.test.TestScope.scanFindingAndWait(vm: DiscoverViewModel) {
+        watch(vm)
+        vm.startScan()
+        runCurrent()
+        advanceTimeBy(200)
+        runCurrent()
+    }
+
+    @Test
+    fun `a saved TV found at a new address is moved once the device is confirmed`() =
+        runTest(dispatcher) {
+            val recorded = mutableListOf<Triple<String, String, String?>>()
+            val vm =
+                viewModel(OpenDiscovery(listOf(DiscoveredTv("nvidia", "192.168.1.99", 6466))), saved = listOf(shield), recorded = recorded)
+            scanFindingAndWait(vm)
+            assertEquals(listOf(Triple("tv-2", "192.168.1.99", "nvidia")), recorded)
+        }
+
+    @Test
+    fun `a device with the same name that is not the paired TV changes nothing`() =
+        runTest(dispatcher) {
+            val recorded = mutableListOf<Triple<String, String, String?>>()
+            val confirmed = mutableListOf<String>()
+            val vm =
+                viewModel(
+                    OpenDiscovery(listOf(DiscoveredTv("nvidia", "192.168.1.99", 6466))),
+                    saved = listOf(shield),
+                    sameTv = false,
+                    recorded = recorded,
+                    confirmed = confirmed,
+                )
+            scanFindingAndWait(vm)
+            assertEquals(listOf("192.168.1.99"), confirmed)
+            assertEquals(emptyList<Triple<String, String, String?>>(), recorded)
+            // It stays available to pair as a new TV.
+            assertEquals(
+                listOf("192.168.1.99"),
+                vm.uiState.value.available
+                    .map { it.host },
+            )
+        }
+
+    @Test
+    fun `a saved TV found at its own address only gets its network name recorded, without a network check`() =
+        runTest(dispatcher) {
+            val recorded = mutableListOf<Triple<String, String, String?>>()
+            val confirmed = mutableListOf<String>()
+            val oldEntry = shield.copy(serviceName = null, name = "nvidia")
+            val vm =
+                viewModel(
+                    OpenDiscovery(listOf(DiscoveredTv("nvidia", "192.168.1.30", 6466))),
+                    saved = listOf(oldEntry),
+                    recorded = recorded,
+                    confirmed = confirmed,
+                )
+            scanFindingAndWait(vm)
+            assertEquals(listOf(Triple("tv-2", "192.168.1.30", "nvidia")), recorded)
+            assertEquals(emptyList<String>(), confirmed)
+        }
+
+    @Test
+    fun `the same device is only checked once per search`() =
+        runTest(dispatcher) {
+            val confirmed = mutableListOf<String>()
+            val vm =
+                viewModel(
+                    OpenDiscovery(listOf(DiscoveredTv("nvidia", "192.168.1.99", 6466))),
+                    saved = listOf(shield),
+                    sameTv = false,
+                    confirmed = confirmed,
+                )
+            scanFindingAndWait(vm)
+            advanceTimeBy(500)
+            assertEquals(1, confirmed.size)
+        }
+
+    @Test
+    fun `saved TVs are listed before any search, and found saved TVs are not offered for pairing`() =
+        runTest(dispatcher) {
+            val vm = viewModel(OpenDiscovery(listOf(tv, DiscoveredTv("New TV", "192.168.1.55", 6466))), saved = listOf(savedTv))
+            watch(vm)
+            runCurrent()
+            assertEquals(listOf(savedTv), vm.uiState.value.saved)
+            assertEquals(emptyList<DiscoveredTv>(), vm.uiState.value.available)
+            vm.startScan()
+            runCurrent()
+            val state = vm.uiState.value
+            assertEquals(listOf("192.168.1.55"), state.available.map { it.host })
+            assertEquals(true, state.isNearby(savedTv))
         }
 }

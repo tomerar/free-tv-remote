@@ -50,9 +50,9 @@ import io.github.tomerar.freetvremote.ui.simpleFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PairScreen(host: String, name: String, onBack: () -> Unit, onPaired: () -> Unit) {
+fun PairScreen(host: String, name: String, serviceName: String? = null, onBack: () -> Unit, onPaired: () -> Unit) {
     val container = LocalAppContainer.current
-    val vm: PairViewModel = viewModel(key = "pair-$host", factory = simpleFactory { PairViewModel(container, host, name) })
+    val vm: PairViewModel = viewModel(key = "pair-$host", factory = simpleFactory { PairViewModel(container, host, name, serviceName) })
     val state by vm.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(state) {

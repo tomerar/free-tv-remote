@@ -104,8 +104,11 @@
     <string name="discover_none_title">No TVs found</string>
     <string name="discover_none_tips">Check that your phone and TV are on the same Wi-Fi network, that the TV is switched on, and that you allowed network access. Then search again, or enter the IP address.</string>
     <string name="discover_error_title">Could not search the network</string>
+    <string name="discover_saved_title">Saved TVs</string>
+    <string name="discover_available_title">Available TVs</string>
+    <string name="discover_nearby_badge">On this network</string>
+    <string name="discover_none_new">No new TVs found.</string>
     <string name="discover_rescan">Search again</string>
-    <string name="discover_paired_badge">Paired</string>
     <string name="discover_manual_title">Can\'t find your TV? Enter its IP address</string>
     <string name="discover_manual_label">TV IP address</string>
     <string name="discover_manual_hint">For example 192.168.1.20</string>

@@ -12,6 +12,11 @@ data class SavedTv(
     val pin: String,
     val remotePort: Int = DEFAULT_REMOTE_PORT,
     val pairingPort: Int = DEFAULT_PAIRING_PORT,
+    /**
+     * The name the TV announces on the network (mDNS) when it was found by the search. It does not change when the
+     * user renames the TV or the router gives it a new address, so it is how the app recognises it again.
+     */
+    val serviceName: String? = null,
 ) {
     val pinBytes: ByteArray get() = Base64.getDecoder().decode(pin)
 

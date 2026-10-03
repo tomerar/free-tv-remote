@@ -146,6 +146,18 @@ paired. Rationale: re-pairing a known TV asked for a code the app did not need a
 (`DiscoverViewModel.choose`, `DiscoverViewModelTest`). Known gap: a paired TV whose IP address changed is not
 recognised and is paired as a new one (docs/KNOWN_LIMITATIONS.md).
 
+**D30. The TV screen has two sections, like Android's Wi-Fi settings.** *Saved TVs* (always visible; tap selects the TV
+and opens the remote) and *Available TVs* (only newly found ones, with the search). A saved TV that answers the search
+shows *On this network* and is never offered for pairing again.
+
+**D31. A saved TV is recognised by the name it announces on the network, and only moved after a pin check.** The mDNS
+name is recorded when a TV is paired from the search (`SavedTv.serviceName`, optional, so old data still loads). When a
+search finds that name at a different address, the app first completes a TLS handshake with the pinned-key check
+(`confirmPinnedTv`; nothing is sent) and only then updates the address, so a look-alike device can never take over a
+saved entry. Ambiguous names (two saved TVs, or one name announced twice) are ignored. Rationale: routers hand out new
+addresses and the app used to lose the TV. Re-pairing a TV found at a new address replaces its entry instead of adding
+a duplicate (`TvRepository.savePaired`).
+
 ## Testing
 
 **D24. Three layers.** (1) Pure JVM unit tests for framing, protobuf bytes, secret, certificates and identity store.

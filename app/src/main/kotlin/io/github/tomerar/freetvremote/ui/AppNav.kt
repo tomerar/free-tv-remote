@@ -33,9 +33,10 @@ internal object Routes {
     const val TVS = "tvs"
     const val SHORTCUTS = "shortcuts"
     const val DIAGNOSTICS = "diagnostics"
-    const val PAIR = "pair/{host}/{name}"
+    const val PAIR = "pair/{host}/{name}?service={service}"
 
-    fun pair(host: String, name: String) = "pair/${Uri.encode(host)}/${Uri.encode(name)}"
+    fun pair(host: String, name: String, serviceName: String? = null) =
+        "pair/${Uri.encode(host)}/${Uri.encode(name)}" + (serviceName?.let { "?service=${Uri.encode(it)}" } ?: "")
 }
 
 /** [startOnboarding] is true when there is no saved TV yet. */
@@ -56,19 +57,30 @@ fun AppNav(startOnboarding: Boolean, navController: NavHostController = remember
         composable(Routes.DISCOVER) {
             DiscoverScreen(
                 onBack = if (navController.previousBackStackEntry != null) ({ navController.popBackStack() }) else null,
-                onPair = { host, name -> navController.navigate(Routes.pair(host, name)) },
+                onPair = { host, name, service -> navController.navigate(Routes.pair(host, name, service)) },
                 onOpenRemote = { navController.showRemote() },
             )
         }
         composable(
             Routes.PAIR,
-            arguments = listOf(navArgument("host") { type = NavType.StringType }, navArgument("name") { type = NavType.StringType }),
+            arguments =
+                listOf(
+                    navArgument("host") { type = NavType.StringType },
+                    navArgument("name") { type = NavType.StringType },
+                    navArgument("service") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
         ) { entry ->
             val host = entry.arguments?.getString("host").orEmpty()
             val name = entry.arguments?.getString("name").orEmpty()
+            val service = entry.arguments?.getString("service")
             PairScreen(
                 host = host,
                 name = name,
+                serviceName = service,
                 onBack = { navController.popBackStack() },
                 onPaired = { navController.showRemote() },
             )

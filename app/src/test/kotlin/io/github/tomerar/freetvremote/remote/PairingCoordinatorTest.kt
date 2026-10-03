@@ -82,6 +82,38 @@ class PairingCoordinatorTest {
         }
 
     @Test
+    fun `the network name the TV announced is saved with it`() =
+        runBlocking {
+            coordinator.start("Living Room", "127.0.0.1", tv.pairingPort, tv.remotePort, serviceName = "tcl-livingroom")
+            coordinator.state.awaitValue { it is PairingState.AwaitingCode }
+            coordinator.submit(awaitCode())
+            coordinator.state.awaitValue { it is PairingState.Success }
+            assertEquals(
+                "tcl-livingroom",
+                repo.tvs
+                    .first()
+                    .single()
+                    .serviceName,
+            )
+        }
+
+    @Test
+    fun `a TV paired by typing its address has no network name`() =
+        runBlocking {
+            begin()
+            coordinator.state.awaitValue { it is PairingState.AwaitingCode }
+            coordinator.submit(awaitCode())
+            coordinator.state.awaitValue { it is PairingState.Success }
+            assertEquals(
+                null,
+                repo.tvs
+                    .first()
+                    .single()
+                    .serviceName,
+            )
+        }
+
+    @Test
     fun `wrong code keeps the session open and the right code then works`() =
         runBlocking {
             begin()

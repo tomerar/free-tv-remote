@@ -58,6 +58,7 @@ Use the IDs in your results file. "Record" means: write down what you actually o
 | A4 | "Search again" | List refreshes without duplicates. With the TV off: "No TVs found" with hints and the manual IP entry opened |
 | A5 | Manual entry: invalid text; a wrong IP; the TV's real IP | Invalid input is rejected with a message; wrong IP leads to a clear "could not reach" state; real IP proceeds to pairing |
 | A6 | Phone Wi-Fi off while searching | A clear message, no crash |
+| A8 | Open *Add a TV* with one TV saved, before searching | The saved TV is listed at the top and opens the remote when tapped; "Available TVs" shows the search button |
 | A7 | With a TV already paired, tap it (marked "Paired") in the search results, and also type its IP address by hand | The remote opens at once and that TV becomes the active one; no pairing code is asked for |
 
 ### B. Pairing, wrong code, re-pairing
@@ -125,7 +126,7 @@ Focus a TV text field first (for example the search box of a video app).
 | --- | --- | --- |
 | H1 | Phone Wi-Fi off, wait 20 s, on | The app reconnects without restart. Record time |
 | H2 | TV Wi-Fi/network off and on | The app reconnects. Record time |
-| H3 | Reboot the router or give the TV a new IP | Record the outcome. Automatic recovery of a changed address is **not implemented** (known limitation, see `docs/KNOWN_LIMITATIONS.md`) |
+| H3 | Reboot the router or give the TV a new IP (DHCP reservation change), then open *Add a TV* and search | The saved TV is recognised, marked *On this network*, its address is updated and the remote works without pairing again. Record whether it worked, and what happens for a TV that was renamed (known limitation, see `docs/KNOWN_LIMITATIONS.md`) |
 
 ### I. Background and foreground
 | ID | Steps | Expected / record |

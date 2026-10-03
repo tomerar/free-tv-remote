@@ -10,9 +10,12 @@ import io.github.tomerar.freetvremote.data.SavedTv
 import io.github.tomerar.freetvremote.data.ThemeMode
 import io.github.tomerar.freetvremote.diagnostics.maskHost
 import io.github.tomerar.freetvremote.discovery.DiscoveredTv
+import io.github.tomerar.freetvremote.discovery.KnownTvAction
 import io.github.tomerar.freetvremote.discovery.TvDiscovery
+import io.github.tomerar.freetvremote.discovery.matchKnownTvs
 import io.github.tomerar.freetvremote.protocol.remote.ConnectionState
 import io.github.tomerar.freetvremote.protocol.remote.TvState
+import io.github.tomerar.freetvremote.protocol.remote.confirmPinnedTv
 import io.github.tomerar.freetvremote.remote.KeyGestures
 import io.github.tomerar.freetvremote.remote.KeyboardDraftController
 import io.github.tomerar.freetvremote.remote.PairingCoordinator
@@ -106,9 +109,17 @@ data class DiscoverUiState(
     val phase: ScanPhase = ScanPhase.IDLE,
     /** 0..1 while [ScanPhase.SCANNING]; the search ends by itself when it reaches 1. */
     val progress: Float = 0f,
+    /** Everything the search found so far, including TVs that are already saved. */
     val devices: List<DiscoveredTv> = emptyList(),
-    val pairedHosts: Set<String> = emptySet(),
-)
+    /** The saved (paired) TVs, always shown, searching or not. */
+    val saved: List<SavedTv> = emptyList(),
+) {
+    /** Found TVs that are not saved yet: the ones that can be paired. */
+    val available: List<DiscoveredTv> get() = devices.filter { found -> saved.none { it.host == found.host } }
+
+    /** A saved TV that answered the search is shown as found on the network. */
+    fun isNearby(tv: SavedTv): Boolean = devices.any { it.host == tv.host }
+}
 
 /**
  * Searches only when asked and stops by itself after [scanDurationMs], so nothing keeps listening on the
@@ -120,21 +131,27 @@ class DiscoverViewModel(
     private val scanDurationMs: Long = SCAN_DURATION_MS,
     private val log: (String) -> Unit = {},
     private val selectTv: suspend (String) -> Unit = {},
+    /** Is the device at this address the saved TV (does it present the pinned key)? */
+    private val confirmSameTv: suspend (tv: SavedTv, host: String) -> Boolean = { _, _ -> false },
+    private val recordAddress: suspend (id: String, host: String, serviceName: String?) -> Unit = { _, _, _ -> },
 ) : ViewModel() {
     constructor(container: AppContainer) : this(
         container.discovery,
         container.tvRepository.tvs,
         log = { container.eventLog.log("Discovery", it) },
         selectTv = container.remoteController::selectTv,
+        confirmSameTv = { tv, host -> confirmPinnedTv(container.identityProvider.get(), host, tv.remotePort, tv.pinBytes) },
+        recordAddress = container.tvRepository::updateAddress,
     )
 
     private val scan = MutableStateFlow(DiscoverUiState())
     private var job: Job? = null
+    private val handled =
+        java.util.concurrent.ConcurrentHashMap
+            .newKeySet<String>()
 
     val uiState: StateFlow<DiscoverUiState> =
-        combine(scan, savedTvs) { s, tvs ->
-            s.copy(pairedHosts = tvs.map { it.host }.toSet())
-        }.state(viewModelScope, DiscoverUiState())
+        combine(scan, savedTvs) { s, tvs -> s.copy(saved = tvs) }.state(viewModelScope, DiscoverUiState())
 
     val hasSavedTvs: StateFlow<Boolean> =
         savedTvs
@@ -145,6 +162,7 @@ class DiscoverViewModel(
     fun startScan() {
         if (job?.isActive == true) return
         log("search started")
+        handled.clear()
         scan.value = DiscoverUiState(phase = ScanPhase.SCANNING)
         job =
             viewModelScope.launch {
@@ -162,7 +180,10 @@ class DiscoverViewModel(
                     discovery
                         .discover()
                         .catch { failed = true }
-                        .collect { found -> scan.update { it.copy(devices = found) } }
+                        .collect { found ->
+                            scan.update { it.copy(devices = found) }
+                            launch { recognizeSavedTvs(found) }
+                        }
                 }
                 ticker.cancel()
                 log(if (failed) "search failed" else "search finished: ${scan.value.devices.size} TV(s) found")
@@ -171,15 +192,48 @@ class DiscoverViewModel(
     }
 
     /**
+     * A saved TV that answers the search at a new address (the router gave it another one) is pointed at that
+     * address, so it does not have to be paired again. The device is first checked against the pinned key: only the
+     * paired TV itself can pass, so a different device with the same name (say, at someone else's home) never
+     * hijacks a saved entry.
+     */
+    private suspend fun recognizeSavedTvs(found: List<DiscoveredTv>) {
+        for (action in matchKnownTvs(savedTvs.first(), found)) {
+            if (!handled.add("${action.saved.id}@${action.found.host}")) continue
+            val where = maskHost(action.found.host)
+            when (action) {
+                is KnownTvAction.RememberName -> {
+                    recordAddress(action.saved.id, action.found.host, action.found.name)
+                }
+
+                is KnownTvAction.MoveAddress -> {
+                    if (confirmSameTv(action.saved, action.found.host)) {
+                        recordAddress(action.saved.id, action.found.host, action.found.name)
+                        log("a saved TV moved: now at $where (was ${maskHost(action.saved.host)})")
+                    } else {
+                        log("a TV with the name of a saved TV answered at $where, but it is not the same device")
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * The user chose the TV at [host]. A TV that is already paired is simply selected and the remote opens
      * ([onOpenRemote]); pairing it a second time would only ask for a code the app does not need. Anything else
      * goes on to pairing ([onPair]).
      */
-    fun choose(host: String, name: String, onPair: (host: String, name: String) -> Unit, onOpenRemote: () -> Unit) {
+    fun choose(
+        host: String,
+        name: String,
+        serviceName: String?,
+        onPair: (host: String, name: String, serviceName: String?) -> Unit,
+        onOpenRemote: () -> Unit,
+    ) {
         viewModelScope.launch {
             val saved = savedTvs.first().firstOrNull { it.host == host }
             if (saved == null) {
-                onPair(host, name)
+                onPair(host, name, serviceName)
             } else {
                 stopScan()
                 selectTv(saved.id)
@@ -212,6 +266,7 @@ class PairViewModel(
     container: AppContainer,
     val host: String,
     val name: String,
+    private val serviceName: String? = null,
 ) : ViewModel() {
     private val coordinator =
         PairingCoordinator(
@@ -224,12 +279,12 @@ class PairViewModel(
     val state: StateFlow<PairingState> = coordinator.state
 
     init {
-        coordinator.start(name, host)
+        coordinator.start(name, host, serviceName = serviceName)
     }
 
     fun submit(code: String) = coordinator.submit(code)
 
-    fun retry() = coordinator.start(name, host)
+    fun retry() = coordinator.start(name, host, serviceName = serviceName)
 
     override fun onCleared() {
         coordinator.cancel()

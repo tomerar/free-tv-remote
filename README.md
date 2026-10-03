@@ -36,7 +36,7 @@ Free. Open source. No ads, no account, no cloud, no tracking.
 
 <div align="center">
 
-### **[Download the latest APK (v0.1.8)](https://github.com/tomerar/free-tv-remote/releases/download/v0.1.8/FreeTVRemote-v0.1.8.apk)**
+### **[Download the latest APK (v0.1.9)](https://github.com/tomerar/free-tv-remote/releases/download/v0.1.9/FreeTVRemote-v0.1.9.apk)**
 
 [All releases](https://github.com/tomerar/free-tv-remote/releases/latest) ·
 [Install guide](docs/INSTALL.md) ·
@@ -62,7 +62,7 @@ Open the file on your Android phone (8.0 or newer), allow *install unknown apps*
 | ⌨️ **Type on the TV** | Write on the phone keyboard, send to the TV; your text is kept if sending fails |
 | 🚀 **App shortcuts** | Netflix, YouTube, Disney+, Prime Video and your own deep links |
 | 🎨 **Looks native** | Material You colors from your wallpaper, system light/dark theme, large touch targets |
-| 📺 **Several TVs** | Save as many as you like and switch in one tap |
+| 📺 **Saved and available TVs** | Like Wi-Fi settings: your saved TVs on top (tap to open the remote), new TVs found nearby below. A saved TV that gets a new address is found again by itself |
 | ⚡ **Tile and widget** | Quick Settings tile and home-screen widget for power and volume |
 | 🛡 **Private by design** | Talks only to your TV on your Wi-Fi. No analytics, no cloud, no Google Play Services |
 | 🌍 **Hebrew and English** | Full right-to-left support; the D-pad always stays physically correct |
@@ -148,7 +148,7 @@ build it yourself: [docs/BUILDING.md](docs/BUILDING.md).
 **Next**
 1. Run the full hardware checklist on more Android TV / Google TV devices and record the results.
 2. A permanent signing key, so updates install over the previous version.
-3. Automatic re-finding of a TV whose IP address changed; a clear message when a key could not be sent.
+3. A clear message when a key could not be sent while disconnected.
 
 **Exploring**
 - LG (webOS) and Samsung (Tizen) support. These are separate protocols and a lot of work, so this is research

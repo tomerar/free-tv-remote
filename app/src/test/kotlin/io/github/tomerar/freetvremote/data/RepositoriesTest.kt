@@ -1,5 +1,7 @@
 package io.github.tomerar.freetvremote.data
 
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.tomerar.freetvremote.testDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -156,4 +158,61 @@ class RepositoriesTest {
         assertFalse(AppShortcut.isValidLink("https:// spaces"))
         assertFalse(AppShortcut.isValidLink(""))
     }
+
+    @Test
+    fun `TVs saved before the network name was recorded still load`() =
+        runBlocking {
+            val store = testDataStore(scope, tmp.root, "old")
+            store.edit {
+                it[
+                    androidx.datastore.preferences.core
+                        .stringPreferencesKey("tvs"),
+                ] =
+                    """[{"id":"1","name":"Shield","host":"10.0.0.2","pin":"AQ=="}]"""
+            }
+            val tv = TvRepository(store).tvs.first().single()
+            assertEquals("Shield", tv.name)
+            assertNull(tv.serviceName)
+            assertEquals(6466, tv.remotePort)
+        }
+
+    @Test
+    fun `the announced network name is stored and survives a re-pairing without it`() =
+        runBlocking {
+            val repo = tvRepo()
+            val first = repo.savePaired("Shield", "10.0.0.2", byteArrayOf(1), 6466, 6467, serviceName = "nvidia living room")
+            assertEquals("nvidia living room", first.serviceName)
+            val again = repo.savePaired("Shield", "10.0.0.2", byteArrayOf(2), 6466, 6467)
+            assertEquals("nvidia living room", again.serviceName)
+        }
+
+    @Test
+    fun `re-pairing a TV found at a new address replaces the entry instead of adding a second one`() =
+        runBlocking {
+            val repo = tvRepo()
+            val first = repo.savePaired("Shield", "10.0.0.2", byteArrayOf(1), 6466, 6467, serviceName = "nvidia living room")
+            repo.rename(first.id, "Living room")
+            val again = repo.savePaired("nvidia living room", "10.0.0.50", byteArrayOf(3), 6466, 6467, serviceName = "nvidia living room")
+            assertEquals(first.id, again.id)
+            assertEquals("Living room", again.name)
+            assertEquals("10.0.0.50", again.host)
+            assertEquals(1, repo.tvs.first().size)
+        }
+
+    @Test
+    fun `updating the address keeps the pairing and the custom name`() =
+        runBlocking {
+            val repo = tvRepo()
+            val tv = repo.savePaired("Shield", "10.0.0.2", byteArrayOf(1), 6466, 6467)
+            repo.rename(tv.id, "Living room")
+            repo.updateAddress(tv.id, "10.0.0.77", "nvidia living room")
+            val updated = repo.get(tv.id)!!
+            assertEquals("10.0.0.77", updated.host)
+            assertEquals("nvidia living room", updated.serviceName)
+            assertEquals("Living room", updated.name)
+            assertEquals(tv.pin, updated.pin)
+            // A later update without a name does not erase the recorded one.
+            repo.updateAddress(tv.id, "10.0.0.78", null)
+            assertEquals("nvidia living room", repo.get(tv.id)!!.serviceName)
+        }
 }

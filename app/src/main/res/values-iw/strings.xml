@@ -105,8 +105,11 @@
     <string name="discover_none_title">לא נמצאו טלוויזיות</string>
     <string name="discover_none_tips">ודאו שהטלפון והטלוויזיה מחוברים לאותה רשת Wi-Fi, שהטלוויזיה דולקת ושאישרתם גישה לרשת. אחר כך חפשו שוב, או הזינו כתובת IP.</string>
     <string name="discover_error_title">לא ניתן לסרוק את הרשת</string>
+    <string name="discover_saved_title">טלוויזיות שמורות</string>
+    <string name="discover_available_title">טלוויזיות זמינות</string>
+    <string name="discover_nearby_badge">ברשת הזו</string>
+    <string name="discover_none_new">לא נמצאו טלוויזיות חדשות.</string>
     <string name="discover_rescan">חיפוש מחדש</string>
-    <string name="discover_paired_badge">מותאם</string>
     <string name="discover_manual_title">לא מוצאים את הטלוויזיה? הזינו כתובת IP</string>
     <string name="discover_manual_label">כתובת ה-IP של הטלוויזיה</string>
     <string name="discover_manual_hint">לדוגמה 192.168.1.20</string>

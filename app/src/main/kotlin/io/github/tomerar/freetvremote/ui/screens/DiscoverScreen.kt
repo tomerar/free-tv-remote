@@ -51,7 +51,6 @@ import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.tomerar.freetvremote.R
-import io.github.tomerar.freetvremote.discovery.DiscoveredTv
 import io.github.tomerar.freetvremote.ui.DiscoverViewModel
 import io.github.tomerar.freetvremote.ui.LocalAppContainer
 import io.github.tomerar.freetvremote.ui.LocalNetworkPermission
@@ -72,7 +71,11 @@ private const val MAX_OCTET = 255
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -> Unit, onOpenRemote: () -> Unit) {
+fun DiscoverScreen(
+    onBack: (() -> Unit)?,
+    onPair: (host: String, name: String, serviceName: String?) -> Unit,
+    onOpenRemote: () -> Unit,
+) {
     val container = LocalAppContainer.current
     val vm: DiscoverViewModel = viewModel(factory = simpleFactory { DiscoverViewModel(container) })
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -112,6 +115,18 @@ fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Text(stringResource(R.string.discover_intro), style = MaterialTheme.typography.bodyMedium) }
+            if (state.saved.isNotEmpty()) {
+                item { SectionHeader(R.string.discover_saved_title) }
+                items(state.saved, key = { "saved-" + it.id }) { tv ->
+                    DeviceRow(
+                        name = tv.name,
+                        host = tv.host,
+                        badge = if (state.isNearby(tv)) R.string.discover_nearby_badge else null,
+                        onClick = { vm.choose(tv.host, tv.name, tv.serviceName, onPair, onOpenRemote) },
+                    )
+                }
+                item { SectionHeader(R.string.discover_available_title) }
+            }
             if (!granted) {
                 item {
                     PermissionCard(
@@ -125,28 +140,45 @@ fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -
                     )
                 }
             } else {
-                item { ScanStatus(state.phase, state.progress, empty = state.devices.isEmpty(), onSearch = vm::startScan) }
-                items(state.devices, key = { it.name + it.host }) { device ->
-                    DeviceRow(
-                        device,
-                        paired = device.host in state.pairedHosts,
-                        onClick = { vm.choose(device.host, device.name, onPair, onOpenRemote) },
+                item {
+                    ScanStatus(
+                        state.phase,
+                        state.progress,
+                        empty = state.available.isEmpty(),
+                        hasSaved = state.saved.isNotEmpty(),
+                        onSearch = vm::startScan,
                     )
                 }
-                if (state.phase == ScanPhase.DONE || state.phase == ScanPhase.FAILED) {
-                    if (state.devices.isNotEmpty()) {
-                        item {
-                            OutlinedButton(onClick = vm::startScan) { Text(stringResource(R.string.discover_rescan)) }
-                        }
+                items(state.available, key = { it.name + it.host }) { device ->
+                    DeviceRow(
+                        name = device.name,
+                        host = device.host,
+                        badge = null,
+                        onClick = { vm.choose(device.host, device.name, device.name, onPair, onOpenRemote) },
+                    )
+                }
+                if ((state.phase == ScanPhase.DONE || state.phase == ScanPhase.FAILED) && state.available.isNotEmpty()) {
+                    item {
+                        OutlinedButton(onClick = vm::startScan) { Text(stringResource(R.string.discover_rescan)) }
                     }
                 }
             }
             item {
                 val nothingFound = (state.phase == ScanPhase.DONE || state.phase == ScanPhase.FAILED) && state.devices.isEmpty()
-                ManualEntry(forceOpen = nothingFound, onPair = { host -> vm.choose(host, defaultName, onPair, onOpenRemote) })
+                ManualEntry(forceOpen = nothingFound, onPair = { host -> vm.choose(host, defaultName, null, onPair, onOpenRemote) })
             }
         }
     }
+}
+
+@Composable
+private fun SectionHeader(title: Int) {
+    Text(
+        text = stringResource(title),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 8.dp),
+    )
 }
 
 @Composable
@@ -164,7 +196,7 @@ private fun PermissionCard(askedBefore: Boolean, onGrant: () -> Unit, onOpenSett
 }
 
 @Composable
-private fun ScanStatus(phase: ScanPhase, progress: Float, empty: Boolean, onSearch: () -> Unit) {
+private fun ScanStatus(phase: ScanPhase, progress: Float, empty: Boolean, hasSaved: Boolean, onSearch: () -> Unit) {
     when (phase) {
         ScanPhase.IDLE -> {
             Button(onClick = onSearch, modifier = Modifier.fillMaxWidth()) {
@@ -181,7 +213,12 @@ private fun ScanStatus(phase: ScanPhase, progress: Float, empty: Boolean, onSear
         }
 
         ScanPhase.DONE, ScanPhase.FAILED -> {
-            if (empty) {
+            if (empty && hasSaved && phase == ScanPhase.DONE) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.discover_none_new), style = MaterialTheme.typography.bodyMedium)
+                    OutlinedButton(onClick = onSearch) { Text(stringResource(R.string.discover_rescan)) }
+                }
+            } else if (empty) {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         val title = if (phase == ScanPhase.FAILED) R.string.discover_error_title else R.string.discover_none_title
@@ -197,7 +234,7 @@ private fun ScanStatus(phase: ScanPhase, progress: Float, empty: Boolean, onSear
 }
 
 @Composable
-private fun DeviceRow(device: DiscoveredTv, paired: Boolean, onClick: () -> Unit) {
+private fun DeviceRow(name: String, host: String, badge: Int?, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -205,10 +242,14 @@ private fun DeviceRow(device: DiscoveredTv, paired: Boolean, onClick: () -> Unit
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Icon(Icons.Filled.Tv, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Column(Modifier.weight(1f)) {
-                Text(device.name, style = MaterialTheme.typography.titleMedium)
-                Text(device.host, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(name, style = MaterialTheme.typography.titleMedium)
+                Text(host, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (paired) Text(stringResource(R.string.discover_paired_badge), color = MaterialTheme.colorScheme.primary)
+            if (badge !=
+                null
+            ) {
+                Text(stringResource(badge), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+            }
         }
     }
 }

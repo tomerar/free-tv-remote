@@ -31,11 +31,21 @@ class TvRepository(
      * Adds a freshly paired TV, or replaces the entry with the same host (re-pairing).
      * The TV becomes the last used one. Returns the stored entry.
      */
-    suspend fun savePaired(name: String, host: String, pin: ByteArray, remotePort: Int, pairingPort: Int): SavedTv {
+    suspend fun savePaired(
+        name: String,
+        host: String,
+        pin: ByteArray,
+        remotePort: Int,
+        pairingPort: Int,
+        serviceName: String? = null,
+    ): SavedTv {
         var saved: SavedTv? = null
         store.edit { prefs ->
             val all = decode(prefs[TVS_KEY])
-            val existing = all.firstOrNull { it.host == host && it.remotePort == remotePort }
+            // Same address, or the same network name (the TV moved to a new address): this is a re-pairing.
+            val existing =
+                all.firstOrNull { it.host == host && it.remotePort == remotePort }
+                    ?: serviceName?.let { svc -> all.firstOrNull { it.serviceName == svc } }
             val entry =
                 SavedTv(
                     id = existing?.id ?: UUID.randomUUID().toString(),
@@ -44,6 +54,7 @@ class TvRepository(
                     pin = SavedTv.encodePin(pin),
                     remotePort = remotePort,
                     pairingPort = pairingPort,
+                    serviceName = serviceName ?: existing?.serviceName,
                 )
             prefs[TVS_KEY] = AppJson.encodeToString(listSerializer, all.filterNot { it.id == entry.id } + entry)
             prefs[LAST_USED_KEY] = entry.id
@@ -67,6 +78,14 @@ class TvRepository(
     /** The TV changed its address (DHCP): keep the pairing, update where to find it. */
     suspend fun updateHost(id: String, host: String) {
         update(id) { it.copy(host = host) }
+    }
+
+    /**
+     * Records where the TV was found (and the name it announces). Only the address and the network name change;
+     * the pairing (pin) and the user's own name stay as they are.
+     */
+    suspend fun updateAddress(id: String, host: String, serviceName: String?) {
+        update(id) { it.copy(host = host, serviceName = serviceName ?: it.serviceName) }
     }
 
     suspend fun remove(id: String) {

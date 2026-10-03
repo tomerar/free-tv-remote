@@ -77,6 +77,7 @@ class PairingCoordinator(
         val host: String,
         val pairingPort: Int,
         val remotePort: Int,
+        val serviceName: String?,
     )
 
     fun start(
@@ -84,9 +85,11 @@ class PairingCoordinator(
         host: String,
         pairingPort: Int = SavedTv.DEFAULT_PAIRING_PORT,
         remotePort: Int = SavedTv.DEFAULT_REMOTE_PORT,
+        /** The name the TV announced on the network, when it was found by the search (not typed by address). */
+        serviceName: String? = null,
     ) {
         cancel()
-        target = Target(name, host, pairingPort, remotePort)
+        target = Target(name, host, pairingPort, remotePort, serviceName)
         log("pairing: connecting to ${maskHost(host)}:$pairingPort")
         _state.value = PairingState.Connecting
         job =
@@ -120,7 +123,15 @@ class PairingCoordinator(
             scope.launch {
                 try {
                     val certificate = current.submitCode(rawCode)
-                    val saved = tvs.savePaired(info.name, info.host, certificate.publicKeyPin(), info.remotePort, info.pairingPort)
+                    val saved =
+                        tvs.savePaired(
+                            info.name,
+                            info.host,
+                            certificate.publicKeyPin(),
+                            info.remotePort,
+                            info.pairingPort,
+                            info.serviceName,
+                        )
                     log("pairing: TV accepted the code and the pairing was saved")
                     closeSession()
                     log("pairing: pairing connection closed")

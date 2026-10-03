@@ -108,7 +108,7 @@ class ScreensScreenshotTest {
         }
 
     @Test
-    fun discoverScreen() = shoot("screen_discover") { DiscoverScreen(onBack = {}, onPair = { _, _ -> }, onOpenRemote = {}) }
+    fun discoverScreen() = shoot("screen_discover") { DiscoverScreen(onBack = {}, onPair = { _, _, _ -> }, onOpenRemote = {}) }
 
     @Test
     fun pairScreen() = shoot("screen_pair") { PairScreen("192.168.1.20", "Living Room Shield", onBack = {}, onPaired = {}) }

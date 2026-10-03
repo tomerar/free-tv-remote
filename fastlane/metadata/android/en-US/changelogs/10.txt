@@ -1,0 +1,1 @@
+The TV screen now works like Wi-Fi settings: saved TVs on top (tap to open the remote), new TVs found nearby below. A saved TV whose address changed is found again automatically, after checking it is the same device.
