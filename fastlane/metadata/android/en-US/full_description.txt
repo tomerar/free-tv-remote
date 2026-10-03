@@ -1,0 +1,22 @@
+Free TV Remote turns your phone into a Wi-Fi remote for Android TV and Google TV devices. It is free software: no ads, no account, no tracking, no cloud.
+
+<b>Features</b>
+• Finds your TV on the network automatically, or enter its IP address
+• Pair once with the 6-character code shown on the TV
+• Circular D-pad with OK, haptic feedback and hold-to-repeat
+• Back, Home, Menu, volume, mute, power, play/pause, rewind and fast forward
+• Use the phone's volume buttons to control the TV volume
+• Type on your phone and send the text to the TV
+• App shortcuts for Netflix, YouTube, Disney+, Prime Video and more, plus your own deep links
+• Save several TVs and switch between them; reconnects automatically
+• Quick Settings tile and home-screen widget for power and volume
+• Dark, light or system theme
+• English and Hebrew, with full right-to-left support
+
+<b>Privacy</b>
+The app talks only to your TV on your local network. It collects no data, contains no analytics or ads, and needs no Google services.
+
+<b>Requirements</b>
+Phone and TV must be on the same Wi-Fi network. Works with devices that support the Android TV Remote protocol v2, such as NVIDIA Shield, Chromecast with Google TV and many smart TVs. On Android 17 and newer the app asks for permission to access devices on your local network.
+
+This is an early version. Compatibility reports are very welcome on GitHub.

@@ -1,0 +1,49 @@
+name: Device compatibility report
+description: Tell us how the app works with your TV (working or not)
+labels: [compatibility]
+body:
+  - type: input
+    id: tv-model
+    attributes:
+      label: TV / streaming device model
+      placeholder: "NVIDIA Shield TV (2019), TCL 55C735 ..."
+    validations:
+      required: true
+  - type: input
+    id: remote-service
+    attributes:
+      label: Android TV Remote Service version
+      description: Settings > Apps > See all apps > Android TV Remote Service.
+    validations:
+      required: true
+  - type: input
+    id: tv-android
+    attributes:
+      label: Android TV / Google TV version
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+    validations:
+      required: true
+  - type: checkboxes
+    id: works
+    attributes:
+      label: What worked? (tick everything that did)
+      options:
+        - label: The TV was found automatically
+        - label: Pairing with the code
+        - label: D-pad, OK, Back, Home, Menu
+        - label: Volume and mute
+        - label: Power
+        - label: Play/pause, rewind, fast forward
+        - label: Typing text
+        - label: App shortcuts (say which in the notes)
+        - label: Reconnecting after the TV slept
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything that failed or behaved oddly, and which shortcuts / apps you tried.
