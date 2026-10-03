@@ -151,9 +151,18 @@
     <string name="about_version">Version %1$s</string>
     <string name="about_license">Free software under the GNU GPL v3. No ads, no accounts, no tracking.</string>
     <string name="about_privacy">Everything stays on your local network. The app collects no data.</string>
-    <string name="about_error_report_share">Share last error report</string>
-    <string name="about_error_report_desc">The app stopped unexpectedly. Sharing helps fix it; nothing is sent unless you choose to share.</string>
-    <string name="about_error_report_clear">Delete error report</string>
+    <string name="diagnostics_title">Diagnostics</string>
+    <string name="diagnostics_row_desc">Copy or share the app log to report a problem</string>
+    <string name="diagnostics_intro">If something goes wrong, copy the log and paste it into your message, or share the whole log as a file.</string>
+    <string name="diagnostics_size">Stored on this phone: %1$s (the oldest entries are removed automatically)</string>
+    <string name="diagnostics_copy">Copy log</string>
+    <string name="diagnostics_share">Share full log as a file</string>
+    <string name="diagnostics_clear">Delete log</string>
+    <string name="diagnostics_copied">Copied the latest part of the log</string>
+    <string name="diagnostics_copy_failed">Could not copy. Use "Share full log as a file" instead.</string>
+    <string name="diagnostics_cleared">Log deleted</string>
+    <string name="diagnostics_empty">Nothing logged yet.</string>
+    <string name="diagnostics_privacy">The log never contains pairing codes, keys, text you type or buttons you press, and the last part of your TV\'s address is hidden. Nothing is sent anywhere unless you share it.</string>
     <string name="about_source">Source code and issue tracker</string>
 
     <!-- Quick Settings tile and widget -->

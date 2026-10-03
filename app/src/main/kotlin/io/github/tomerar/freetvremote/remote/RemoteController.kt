@@ -50,6 +50,8 @@ class RemoteController(
     private val factory: SessionFactory,
     private val backgroundGraceMs: Long = BACKGROUND_GRACE_MS,
     private val quickConnectTimeoutMs: Long = QUICK_CONNECT_TIMEOUT_MS,
+    /** Receives short, non-sensitive notes about the connection (state changes, why a session could not be built). */
+    private val log: (String) -> Unit = {},
 ) : KeySender {
     private val session = MutableStateFlow<RemoteSession?>(null)
     private val _activeTv = MutableStateFlow<SavedTv?>(null)
@@ -79,6 +81,7 @@ class RemoteController(
     fun start() {
         if (started) return
         started = true
+        scope.launch { connection.collect { log("state: $it") } }
         scope.launch {
             // Keep the active TV in sync with storage (renames, removals, re-pairing, address changes).
             combine(tvs.tvs, tvs.lastUsedId) { all, lastId -> all.firstOrNull { it.id == lastId } ?: all.firstOrNull() }
@@ -113,8 +116,10 @@ class RemoteController(
         try {
             factory.create(scope, tv)
         } catch (e: IOException) {
+            log("could not build the session: ${e::class.simpleName}")
             null // identity unreadable / unwritable (storage full, keystore problem)
         } catch (e: GeneralSecurityException) {
+            log("could not build the session: ${e::class.simpleName}")
             null
         }
 

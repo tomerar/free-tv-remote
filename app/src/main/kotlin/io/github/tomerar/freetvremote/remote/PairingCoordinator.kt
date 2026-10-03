@@ -2,6 +2,7 @@ package io.github.tomerar.freetvremote.remote
 
 import io.github.tomerar.freetvremote.data.SavedTv
 import io.github.tomerar.freetvremote.data.TvRepository
+import io.github.tomerar.freetvremote.diagnostics.maskHost
 import io.github.tomerar.freetvremote.protocol.pairing.PairingClient
 import io.github.tomerar.freetvremote.protocol.pairing.PairingException
 import io.github.tomerar.freetvremote.protocol.pairing.PairingSecret
@@ -61,6 +62,8 @@ class PairingCoordinator(
     private val identity: IdentityProvider,
     private val tvs: TvRepository,
     private val clients: PairingClientFactory = PairingClientFactory { id, host, port -> PairingClient(id, host, port) },
+    /** Receives short, non-sensitive progress notes (never the code, keys or certificates). */
+    private val log: (String) -> Unit = {},
 ) {
     private val _state = MutableStateFlow<PairingState>(PairingState.Idle)
     val state: StateFlow<PairingState> = _state
@@ -84,18 +87,20 @@ class PairingCoordinator(
     ) {
         cancel()
         target = Target(name, host, pairingPort, remotePort)
+        log("pairing: connecting to ${maskHost(host)}:$pairingPort")
         _state.value = PairingState.Connecting
         job =
             scope.launch {
                 try {
                     session = clients.create(identity.get(), host, pairingPort).begin()
+                    log("pairing: the TV shows a code")
                     _state.value = PairingState.AwaitingCode()
                 } catch (e: PairingException) {
-                    _state.value = PairingState.Failed(e.toFailure())
+                    fail(e.toFailure(), e)
                 } catch (e: IOException) {
-                    _state.value = PairingState.Failed(PairingFailure.INTERNAL) // identity could not be loaded or stored
+                    fail(PairingFailure.INTERNAL, e) // identity could not be loaded or stored
                 } catch (e: GeneralSecurityException) {
-                    _state.value = PairingState.Failed(PairingFailure.INTERNAL)
+                    fail(PairingFailure.INTERNAL, e)
                 }
             }
     }
@@ -109,22 +114,26 @@ class PairingCoordinator(
             _state.value = PairingState.AwaitingCode(lastCodeWasInvalid = true)
             return
         }
+        log("pairing: code entered, verifying with the TV")
         _state.value = PairingState.Verifying
         job =
             scope.launch {
                 try {
                     val certificate = current.submitCode(rawCode)
                     val saved = tvs.savePaired(info.name, info.host, certificate.publicKeyPin(), info.remotePort, info.pairingPort)
+                    log("pairing: TV accepted the code and the pairing was saved")
                     closeSession()
+                    log("pairing: pairing connection closed")
                     _state.value = PairingState.Success(saved)
                 } catch (e: PairingException.InvalidCode) {
+                    log("pairing: the code was wrong, waiting for another try")
                     _state.value = PairingState.AwaitingCode(lastCodeWasInvalid = true)
                 } catch (e: PairingException) {
                     closeSession()
-                    _state.value = PairingState.Failed(e.toFailure())
+                    fail(e.toFailure(), e)
                 } catch (e: IOException) {
                     closeSession() // the TV accepted, but the pairing could not be stored on this phone
-                    _state.value = PairingState.Failed(PairingFailure.INTERNAL)
+                    fail(PairingFailure.INTERNAL, e)
                 }
             }
     }
@@ -135,6 +144,11 @@ class PairingCoordinator(
         job = null
         closeSession()
         _state.value = PairingState.Idle
+    }
+
+    private fun fail(reason: PairingFailure, cause: Exception) {
+        log("pairing: failed ($reason): ${cause::class.simpleName}")
+        _state.value = PairingState.Failed(reason)
     }
 
     private fun closeSession() {

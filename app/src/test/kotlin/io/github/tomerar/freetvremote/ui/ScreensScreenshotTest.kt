@@ -14,6 +14,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
 import io.github.tomerar.freetvremote.AppContainer
 import io.github.tomerar.freetvremote.data.ThemeMode
+import io.github.tomerar.freetvremote.ui.screens.DiagnosticsScreen
 import io.github.tomerar.freetvremote.ui.screens.DiscoverScreen
 import io.github.tomerar.freetvremote.ui.screens.PairScreen
 import io.github.tomerar.freetvremote.ui.screens.RemoteScreen
@@ -87,11 +88,34 @@ class ScreensScreenshotTest {
     fun pairScreen() = shoot("screen_pair") { PairScreen("192.168.1.20", "Living Room Shield", onBack = {}, onPaired = {}) }
 
     @Test
-    fun settingsScreen() = shoot("screen_settings") { SettingsScreen(onBack = {}, onManageTvs = {}, onEditShortcuts = {}) }
+    fun settingsScreen() =
+        shoot("screen_settings") {
+            SettingsScreen(onBack = {}, onManageTvs = {}, onEditShortcuts = {}, onOpenDiagnostics = {})
+        }
 
     @Test
     @Config(qualifiers = "he-w411dp-h891dp-xxhdpi")
-    fun settingsScreenHebrew() = shoot("screen_settings_he") { SettingsScreen(onBack = {}, onManageTvs = {}, onEditShortcuts = {}) }
+    fun settingsScreenHebrew() =
+        shoot("screen_settings_he") {
+            SettingsScreen(onBack = {}, onManageTvs = {}, onEditShortcuts = {}, onOpenDiagnostics = {})
+        }
+
+    @Test
+    fun diagnosticsScreen() =
+        shoot("screen_diagnostics") {
+            container.eventLog.logBlocking("App", "started: Free TV Remote 0.1.6, Android 15", 'I')
+            container.eventLog.logBlocking("Discovery", "search started", 'I')
+            container.eventLog.logBlocking("Discovery", "search finished: 1 TV(s) found", 'I')
+            container.eventLog.logBlocking("Pairing", "pairing: connecting to 192.168.1.x:6467", 'I')
+            container.eventLog.logBlocking("Pairing", "pairing: the TV shows a code", 'I')
+            container.eventLog.logBlocking("Pairing", "pairing: TV accepted the code and the pairing was saved", 'I')
+            container.eventLog.logBlocking("Connection", "state: Connected", 'I')
+            DiagnosticsScreen(onBack = {})
+        }
+
+    @Test
+    @Config(qualifiers = "he-w411dp-h891dp-xxhdpi")
+    fun diagnosticsScreenHebrew() = shoot("screen_diagnostics_he") { DiagnosticsScreen(onBack = {}) }
 
     @Test
     fun shortcutsScreen() = shoot("screen_shortcuts") { ShortcutsScreen(onBack = {}) }

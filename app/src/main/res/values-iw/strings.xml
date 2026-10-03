@@ -151,9 +151,18 @@
     <string name="about_version">גרסה %1$s</string>
     <string name="about_license">תוכנה חופשית ברישיון GNU GPL v3. בלי פרסומות, בלי חשבונות ובלי מעקב.</string>
     <string name="about_privacy">הכול נשאר ברשת המקומית שלכם. האפליקציה לא אוספת מידע.</string>
-    <string name="about_error_report_share">שיתוף דוח השגיאה האחרון</string>
-    <string name="about_error_report_desc">האפליקציה נעצרה באופן לא צפוי. שיתוף הדוח עוזר לתקן את זה; שום דבר לא נשלח אלא אם תבחרו לשתף.</string>
-    <string name="about_error_report_clear">מחיקת דוח השגיאה</string>
+    <string name="diagnostics_title">אבחון</string>
+    <string name="diagnostics_row_desc">העתקה או שיתוף של יומן האפליקציה לדיווח על בעיה</string>
+    <string name="diagnostics_intro">אם משהו משתבש, העתיקו את היומן והדביקו אותו בהודעה, או שתפו את כל היומן כקובץ.</string>
+    <string name="diagnostics_size">נשמר בטלפון הזה: %1$s (הרשומות הישנות ביותר נמחקות אוטומטית)</string>
+    <string name="diagnostics_copy">העתקת היומן</string>
+    <string name="diagnostics_share">שיתוף כל היומן כקובץ</string>
+    <string name="diagnostics_clear">מחיקת היומן</string>
+    <string name="diagnostics_copied">החלק האחרון של היומן הועתק</string>
+    <string name="diagnostics_copy_failed">לא ניתן להעתיק. השתמשו ב"שיתוף כל היומן כקובץ".</string>
+    <string name="diagnostics_cleared">היומן נמחק</string>
+    <string name="diagnostics_empty">עדיין לא נרשם דבר.</string>
+    <string name="diagnostics_privacy">היומן לעולם לא כולל קודי צימוד, מפתחות, טקסט שהקלדתם או כפתורים שלחצתם, והחלק האחרון בכתובת הטלוויזיה מוסתר. שום דבר לא נשלח לשום מקום אלא אם תשתפו אותו.</string>
     <string name="about_source">קוד מקור ומעקב תקלות</string>
 
     <!-- Quick Settings tile and widget -->

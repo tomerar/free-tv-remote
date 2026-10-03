@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import io.github.tomerar.freetvremote.ui.screens.DiagnosticsScreen
 import io.github.tomerar.freetvremote.ui.screens.DiscoverScreen
 import io.github.tomerar.freetvremote.ui.screens.PairScreen
 import io.github.tomerar.freetvremote.ui.screens.RemoteScreen
@@ -31,6 +32,7 @@ internal object Routes {
     const val SETTINGS = "settings"
     const val TVS = "tvs"
     const val SHORTCUTS = "shortcuts"
+    const val DIAGNOSTICS = "diagnostics"
     const val PAIR = "pair/{host}/{name}"
 
     fun pair(host: String, name: String) = "pair/${Uri.encode(host)}/${Uri.encode(name)}"
@@ -74,8 +76,10 @@ fun AppNav(startOnboarding: Boolean, navController: NavHostController = remember
                 onBack = { navController.popBackStack() },
                 onManageTvs = { navController.navigate(Routes.TVS) },
                 onEditShortcuts = { navController.navigate(Routes.SHORTCUTS) },
+                onOpenDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) },
             )
         }
+        composable(Routes.DIAGNOSTICS) { DiagnosticsScreen(onBack = { navController.popBackStack() }) }
         composable(Routes.TVS) {
             TvsScreen(onBack = { navController.popBackStack() }, onAddTv = { navController.navigate(Routes.DISCOVER) })
         }

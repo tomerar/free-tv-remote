@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import io.github.tomerar.freetvremote.data.SettingsRepository
 import io.github.tomerar.freetvremote.data.ShortcutsRepository
 import io.github.tomerar.freetvremote.data.TvRepository
+import io.github.tomerar.freetvremote.diagnostics.EventLog
 import io.github.tomerar.freetvremote.discovery.NsdTvDiscovery
 import io.github.tomerar.freetvremote.discovery.TvDiscovery
 import io.github.tomerar.freetvremote.protocol.tls.IdentityStore
@@ -26,8 +27,8 @@ private val Context.appDataStore: DataStore<Preferences> by preferencesDataStore
 /** Hand-rolled dependency container; everything lives as long as the process. */
 class AppContainer(
     context: Context,
-    val crashReporter: CrashReporter =
-        CrashReporter(File(context.applicationContext.noBackupFilesDir, "last_crash.txt"), CrashReporter::deviceHeader),
+    val eventLog: EventLog = EventLog(File(context.applicationContext.noBackupFilesDir, "logs")),
+    val crashReporter: CrashReporter = CrashReporter(eventLog),
 ) {
     private val appContext = context.applicationContext
 
@@ -54,5 +55,11 @@ class AppContainer(
 
     val volumeKeys = VolumeKeyRouter()
 
-    val remoteController = RemoteController(appScope, tvRepository, DefaultSessionFactory(identityProvider))
+    val remoteController =
+        RemoteController(
+            appScope,
+            tvRepository,
+            DefaultSessionFactory(identityProvider),
+            log = { eventLog.log("Connection", it) },
+        )
 }

@@ -1,0 +1,1 @@
+New Settings > Diagnostics: copy the latest part of the app log to the clipboard, or share the whole log as a file, to report a problem. The log never contains pairing codes, keys or typed text.

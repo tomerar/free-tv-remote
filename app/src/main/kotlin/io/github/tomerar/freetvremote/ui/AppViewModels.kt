@@ -115,8 +115,13 @@ class DiscoverViewModel(
     private val discovery: TvDiscovery,
     private val savedTvs: Flow<List<SavedTv>>,
     private val scanDurationMs: Long = SCAN_DURATION_MS,
+    private val log: (String) -> Unit = {},
 ) : ViewModel() {
-    constructor(container: AppContainer) : this(container.discovery, container.tvRepository.tvs)
+    constructor(container: AppContainer) : this(
+        container.discovery,
+        container.tvRepository.tvs,
+        log = { container.eventLog.log("Discovery", it) },
+    )
 
     private val scan = MutableStateFlow(DiscoverUiState())
     private var job: Job? = null
@@ -134,6 +139,7 @@ class DiscoverViewModel(
     /** Starts a bounded search. Ignored while one is already running. */
     fun startScan() {
         if (job?.isActive == true) return
+        log("search started")
         scan.value = DiscoverUiState(phase = ScanPhase.SCANNING)
         job =
             viewModelScope.launch {
@@ -154,6 +160,7 @@ class DiscoverViewModel(
                         .collect { found -> scan.update { it.copy(devices = found) } }
                 }
                 ticker.cancel()
+                log(if (failed) "search failed" else "search finished: ${scan.value.devices.size} TV(s) found")
                 scan.update { it.copy(phase = if (failed) ScanPhase.FAILED else ScanPhase.DONE, progress = 1f) }
             }
     }
@@ -182,7 +189,13 @@ class PairViewModel(
     val host: String,
     val name: String,
 ) : ViewModel() {
-    private val coordinator = PairingCoordinator(viewModelScope, container.identityProvider, container.tvRepository)
+    private val coordinator =
+        PairingCoordinator(
+            viewModelScope,
+            container.identityProvider,
+            container.tvRepository,
+            log = { container.eventLog.log("Pairing", it) },
+        )
 
     val state: StateFlow<PairingState> = coordinator.state
 

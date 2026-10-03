@@ -1,48 +1,33 @@
 package io.github.tomerar.freetvremote
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import io.github.tomerar.freetvremote.diagnostics.EventLog
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.util.concurrent.Executor
 
 class CrashReporterTest {
     @get:Rule
     val tmp = TemporaryFolder()
 
-    private fun reporter(file: File = File(tmp.root, "crash.txt")) = CrashReporter(file) { "Free TV Remote test" }
+    private val log get() = EventLog(File(tmp.root, "logs"), executor = Executor { it.run() })
 
     @Test
-    fun `nothing is reported before anything happened`() {
-        assertNull(reporter().read())
-    }
-
-    @Test
-    fun `a recorded error can be read with version, thread and stack trace`() {
-        val r = reporter()
-        r.record("main", IllegalStateException("boom"), fatal = true)
-        val text = r.read()!!
-        assertTrue(text.startsWith("Free TV Remote test"))
-        assertTrue("Kind: crash" in text)
-        assertTrue("Thread: main" in text)
+    fun `a crash is written into the event log with the stack trace`() {
+        val log = log
+        CrashReporter(log).record("main", IllegalStateException("boom"), fatal = true)
+        val text = log.full()
+        assertTrue("CRASH" in text)
+        assertTrue("thread main" in text)
         assertTrue("IllegalStateException: boom" in text)
     }
 
     @Test
-    fun `a background error is labelled as non fatal`() {
-        val r = reporter()
-        r.record("app-scope", RuntimeException("x"), fatal = false)
-        assertTrue("app kept running" in r.read()!!)
-    }
-
-    @Test
-    fun `the report is size limited and can be cleared`() {
-        val r = reporter()
-        r.record("main", RuntimeException("y".repeat(CrashReporter.MAX_CHARS * 2)), fatal = true)
-        assertEquals(CrashReporter.MAX_CHARS, r.read()!!.length)
-        r.clear()
-        assertNull(r.read())
+    fun `a background error is labelled as one the app survived`() {
+        val log = log
+        CrashReporter(log).record("app-scope", RuntimeException("x"), fatal = false)
+        assertTrue("the app kept running" in log.full())
     }
 }

@@ -50,7 +50,7 @@ private const val SOURCE_URL = "https://github.com/tomerar/free-tv-remote"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onManageTvs: () -> Unit, onEditShortcuts: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onManageTvs: () -> Unit, onEditShortcuts: () -> Unit, onOpenDiagnostics: () -> Unit) {
     val container = LocalAppContainer.current
     val vm: SettingsViewModel = viewModel(factory = simpleFactory { SettingsViewModel(container) })
     val settings by vm.settings.collectAsStateWithLifecycle()
@@ -92,6 +92,12 @@ fun SettingsScreen(onBack: () -> Unit, onManageTvs: () -> Unit, onEditShortcuts:
                 modifier = Modifier.clickable(onClick = onEditShortcuts),
             )
 
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.diagnostics_title)) },
+                supportingContent = { Text(stringResource(R.string.diagnostics_row_desc)) },
+                modifier = Modifier.clickable(onClick = onOpenDiagnostics),
+            )
+
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
             SectionTitle(R.string.settings_section_about)
             ListItem(
@@ -103,30 +109,6 @@ fun SettingsScreen(onBack: () -> Unit, onManageTvs: () -> Unit, onEditShortcuts:
                 supportingContent = { Text(stringResource(R.string.about_license)) },
             )
             ListItem(headlineContent = { Text(stringResource(R.string.about_privacy)) })
-            val reporter = LocalAppContainer.current.crashReporter
-            val errorReport = remember { mutableStateOf(reporter.read()) }
-            errorReport.value?.let { report ->
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.about_error_report_share)) },
-                    supportingContent = { Text(stringResource(R.string.about_error_report_desc)) },
-                    modifier =
-                        Modifier.clickable {
-                            val send =
-                                Intent(Intent.ACTION_SEND)
-                                    .setType("text/plain")
-                                    .putExtra(Intent.EXTRA_TEXT, report)
-                            context.startActivity(Intent.createChooser(send, null))
-                        },
-                )
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.about_error_report_clear)) },
-                    modifier =
-                        Modifier.clickable {
-                            reporter.clear()
-                            errorReport.value = null
-                        },
-                )
-            }
             ListItem(
                 headlineContent = { Text(stringResource(R.string.about_source)) },
                 supportingContent = { Text(SOURCE_URL) },
