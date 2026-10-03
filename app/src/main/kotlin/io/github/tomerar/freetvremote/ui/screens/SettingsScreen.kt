@@ -89,7 +89,11 @@ fun SettingsScreen(onBack: () -> Unit, onManageTvs: () -> Unit, onEditShortcuts:
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
             SectionTitle(R.string.settings_section_about)
             ListItem(
-                headlineContent = { Text(stringResource(R.string.about_version, BuildConfig.VERSION_NAME)) },
+                headlineContent = {
+                    Text(
+                        stringResource(R.string.about_version, "${BuildConfig.VERSION_NAME} (${BuildConfig.GIT_COMMIT})"),
+                    )
+                },
                 supportingContent = { Text(stringResource(R.string.about_license)) },
             )
             ListItem(headlineContent = { Text(stringResource(R.string.about_privacy)) })

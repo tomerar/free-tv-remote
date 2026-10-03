@@ -150,8 +150,10 @@ internal class LegacyResolveQueue<H>(
                     override fun onFailed() = finish()
                 },
             )
-        } catch (e: RuntimeException) {
-            finish() // e.g. the platform refused the request; move on to the next service
+        } catch (e: IllegalArgumentException) {
+            finish() // the platform refused the request (e.g. a stale handle); move on to the next service
+        } catch (e: IllegalStateException) {
+            finish()
         }
     }
 }

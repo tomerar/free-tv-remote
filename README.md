@@ -25,10 +25,12 @@ Free TV Remote turns your phone into a remote control for any TV or streaming bo
 Controlling your own TV should not require an account, a cloud service, ads or Google Play Services.
 This app is built to be small, private, auditable and friendly to F-Droid and to contributors.
 
-> **Project status: early MVP.** The protocol implementation and the app are covered by automated tests
-> against an in-process simulated TV. They have **not yet been validated on a broad range of real
-> devices**; that is the most valuable thing the community can help with. See
-> [Compatibility](#compatibility) and [TESTING.md](TESTING.md).
+> **Project status: early MVP, not yet verified on physical TVs.** The implementation is covered by
+> automated tests against an in-process simulated TV (`FakeTv`). A simulator written from the same assumptions
+> as the client cannot prove that real vendor firmware agrees, so **no physical-device result has been
+> recorded yet** and the app should not be assumed to work on any particular TV. The hardware verification
+> procedure is in [TESTING.md](TESTING.md) and results are collected in
+> [docs/hardware-results/](docs/hardware-results). Known limitations: [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 ## Features
 
@@ -88,10 +90,12 @@ small ways, so every report helps. Please add yours with the
 [Device compatibility report](../../issues/new?template=device_compatibility.yml) issue template
 (include the *Android TV Remote Service* version, it matters).
 
-| Device | Android TV / Google TV | Remote Service | Result | Notes |
+| Device | Android TV / Google TV | Remote Service | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| Simulated TV (automated tests, `FakeTv`) | n/a | n/a | Passing | Verifies the implementation against itself, not against real firmware |
-| *Your device here* | | | | [Report it](../../issues/new?template=device_compatibility.yml) |
+| *None recorded yet* | | | | [Procedure](TESTING.md), [results](docs/hardware-results) |
+
+Only devices with a recorded results file are listed here. Automated runs against `FakeTv` are **not** a
+device result.
 
 Device-specific quirks we learn about are collected in the issues labelled `compatibility`.
 

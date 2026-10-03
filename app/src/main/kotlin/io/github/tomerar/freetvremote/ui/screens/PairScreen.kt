@@ -148,6 +148,7 @@ private fun Failure(reason: PairingFailure, onRetry: () -> Unit, onBack: () -> U
             PairingFailure.UNREACHABLE -> R.string.pair_failed_unreachable
             PairingFailure.REJECTED -> R.string.pair_failed_rejected
             PairingFailure.UNEXPECTED -> R.string.pair_failed_unexpected
+            PairingFailure.INTERNAL -> R.string.pair_failed_internal
         }
     Column(
         modifier = Modifier.fillMaxWidth(),

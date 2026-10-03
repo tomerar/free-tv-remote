@@ -1,91 +1,199 @@
-# Manual test checklist (real devices)
+# Testing: what is proven, and how to prove the rest on real hardware
 
-Automated tests run against a simulated TV only. **This checklist is what proves the app works on real
-hardware.** Run it on any Android TV / Google TV device you own and report the results with the *Device
-compatibility report* issue template, so the compatibility table in the README can grow.
+## 1. What the automated tests do and do not prove
 
-Record first:
-
-| | Device A | Device B (optional) |
+| Evidence | What it can show | What it cannot show |
 | --- | --- | --- |
-| TV model | | |
-| Android TV / Google TV version | | |
-| Android TV Remote Service version (Settings > Apps > See all apps > show system apps) | | |
-| Phone model + Android version | | |
-| App version (Settings > About) | | |
+| **Automated tests** (`./gradlew check`): protocol unit tests, end-to-end tests against the in-process `FakeTv`, app/ViewModel tests, Robolectric UI tests, lint | The code does what its authors intended: framing, pairing secret, TLS pinning, message encoding, reconnect and lifecycle logic, UI behaviour, localisation | That real TV firmware agrees. `FakeTv` was written by the same people, from the same assumptions, as the client. Client and simulator can agree with each other and still differ from a vendor's Android TV Remote Service |
+| **Physical-device evidence** (this document) | Whether pairing, feature negotiation, keys, text entry, volume, app links, standby recovery, widgets and the tile work on a specific TV, phone and software version | Anything about devices you did not test |
 
-Install the debug or release APK from CI / Releases. Phone and TV must be on the same Wi-Fi (not a guest
-network with client isolation). Mark each line ✅ / ❌ / n/a and write a note for every ❌.
+**No physical-device result has been recorded yet.** Until results exist in
+[`docs/hardware-results/`](docs/hardware-results), the app must not be described as compatible with, or tested
+on, any particular TV. The README compatibility table only lists devices with recorded evidence.
 
-## 1. First run and discovery
-- [ ] App opens on the "Choose your TV" screen when no TV is saved
-- [ ] On Android 17+: the local network permission card appears; "Allow" shows the system dialog
-- [ ] After denying: "Open app settings" appears and works; granting there and returning starts the search
-- [ ] The TV appears in the list within ~10 s, with a sensible name and IP
-- [ ] "Search again" refreshes the list
-- [ ] Manual IP entry: invalid text shows an error; the TV's real IP continues to pairing
-- [ ] Airplane mode / Wi-Fi off: a clear message, no crash
+## 2. Rules for recording results
 
-## 2. Pairing
-- [ ] Tapping the TV shows "Contacting the TV…", then a code appears **on the TV**
-- [ ] The code field accepts only hex characters, upper-cases input and limits to 6
-- [ ] A wrong code: the app says it is wrong and lets you retry (note: does the TV still show the code?)
-- [ ] The correct code: "Paired!" and the remote screen opens, status turns "Connected"
-- [ ] Rotating the phone during pairing does not cancel it
-- [ ] Switching the TV off before entering the code: clear "could not reach" error with Try again
-- [ ] Pairing the same TV again (after "Pair again") does not create a duplicate entry
+- Every item gets exactly one result: **pass**, **fail**, **not supported** (the TV or feature cannot do it:
+  say what you saw), or **not tested**. An item you did not try stays *not tested*; never guess.
+- A **pass** needs a short note of what you observed (and a screenshot/screen recording for anything
+  surprising). A **fail** or **not supported** needs a note describing what happened instead.
+- Record the *exact* build and devices (section 4). One results file per device and build.
+- Do not edit a results file after the fact to make it look better; add a new file for a new build.
 
-## 3. Remote screen
-- [ ] OK, Up, Down, Left, Right navigate the TV home screen correctly (Left is really left)
-- [ ] Holding an arrow repeats smoothly (scrolling a long row)
-- [ ] Holding OK on an app icon opens the context menu (long press) ; tapping OK launches
-- [ ] Back, Home, Menu behave correctly
-- [ ] Volume −/+ change TV volume; holding repeats; Mute toggles
-- [ ] Power turns the TV off (note how long until it responds) and, if it can, back on
-- [ ] Play/pause, rewind, fast forward work in a video app (YouTube/Netflix)
-- [ ] Haptic feedback on button press; off when disabled in Settings
-- [ ] Status card shows power state, volume and the current app name/package
-- [ ] Phone volume buttons control the TV only on the remote screen; turned off in Settings they control the phone again; holding repeats
-- [ ] "Keep screen on" keeps the phone awake while the remote is open
-- [ ] Rotation does not disconnect or lose state
-- [ ] Press and hold a key, then lock the phone: the TV does not keep "holding" the key
+## 3. Priority devices
 
-## 4. Keyboard
-- [ ] Open a TV search box, open the keyboard sheet, type "hello", Send: text appears in the TV field
-- [ ] Send a second text: it is appended (or replaces?) — note actual behaviour
-- [ ] Backspace and Enter buttons act in the TV field
-- [ ] Non-Latin text (e.g. Hebrew, emoji): note what happens
+First targets, in this order. Others are welcome; see the README compatibility table.
 
-## 5. App shortcuts
-- [ ] Netflix, YouTube, Disney+, Prime Video, Spotify, Plex: each opens the app on the TV (note any that do not, and whether the app is installed)
-- [ ] Settings > App shortcuts: turn one off (disappears from the remote), reorder, add a custom link such as `https://www.youtube.com/watch?v=dQw4w9WgXcQ`, delete it
-- [ ] An invalid link is rejected with a message
+1. **TCL Google TV** (record the exact model)
+2. **NVIDIA Shield TV** (record the exact model/year)
 
-## 6. Multiple TVs
-- [ ] Pair the second TV; both appear in the TV menu (top left of the remote) and in Settings > My TVs
-- [ ] Switching connects to the other TV and keys go to that TV only
-- [ ] Rename and remove work; removing the active TV disconnects cleanly
-- [ ] Force-close and reopen: reconnects to the last used TV automatically
+## 4. Before you start: record the environment
 
-## 7. Resilience
-- [ ] Put the TV into standby with its own remote: the app shows reconnecting; when the TV wakes, it reconnects by itself
-- [ ] Unplug the TV, wait a minute, plug in: reconnects
-- [ ] Turn phone Wi-Fi off and on during use: reconnects, no crash
-- [ ] Background the app for >30 s, return: reconnects quickly
-- [ ] In TV settings remove the paired device (Android TV Remote Service > Clear data, or factory reset): the app says "no longer paired" and offers "Pair again"
-- [ ] A different TV at the same IP (or a factory-reset TV): "security certificate changed" message, never connects silently
+Copy [`docs/hardware-results/TEMPLATE.md`](docs/hardware-results/TEMPLATE.md) to
+`docs/hardware-results/<date>-<device>-<app-version>.md` and fill in the header.
 
-## 8. Tile and widget
-- [ ] Add the "TV power" Quick Settings tile; tapping toggles TV power; subtitle shows result
-- [ ] Add the widget to the home screen; Power, Vol −, Vol +, Mute work **with the app closed**
-- [ ] With the TV off/unreachable: a failure message, no crash
+| Field | Where to find it |
+| --- | --- |
+| TV / device exact model | Sticker on the device or Settings > Device Preferences > About > Model |
+| TV OS version (Android TV / Google TV) and build | Settings > Device Preferences > About > Version / Build |
+| **Android TV Remote Service version** | Settings > Apps > See all apps > show system apps > *Android TV Remote Service* > version (bottom of the page). On Shield the path is the same under Apps |
+| Phone model and Android version | Phone Settings > About phone |
+| App version **and commit** | App > Settings > About: shows `version (commit)`, e.g. `0.1.1 (a1b2c3d4e)`. For a Release APK also note the release tag and the `.sha256` |
+| APK origin | Release asset, CI artifact or local build (development builds and releases are signed differently, see [docs/RELEASING.md](docs/RELEASING.md)) |
+| Network | Phone and TV on the **same** Wi-Fi; not a guest network with client isolation. Note the router/AP if anything odd shows up |
 
-## 9. Languages, themes, accessibility
-- [ ] Switch phone language to Hebrew (and per-app language on Android 13+): all screens in Hebrew, mirrored layout, **D-pad Left still moves left**, rewind still on the left
-- [ ] "Disney+" shows correctly in Hebrew
-- [ ] Theme: System / Dark / Light all readable
-- [ ] TalkBack on: every button is announced, the D-pad directions can be activated by double tap
-- [ ] Largest font size: nothing is cut off, the screen scrolls
+## 5. Procedure
 
-## 10. Privacy check (optional)
-- [ ] With a network monitor / router logs: the phone only talks to the TV (ports 6466/6467) and does mDNS
+Use the IDs in your results file. "Record" means: write down what you actually observed, including timings.
+
+### A. Discovery and manual address
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| A1 | Fresh install, open the app with no TV saved | Opens on "Choose your TV" |
+| A2 | Android 17+ only: permission card, tap Allow; then repeat after denying once | System dialog appears; after a denial "Open app settings" works and granting there starts the search |
+| A3 | Wait for discovery | The TV is listed within about 10 s with a sensible name and IP. Record the time and the name shown |
+| A4 | "Search again" | List refreshes without duplicates |
+| A5 | Manual entry: invalid text; a wrong IP; the TV's real IP | Invalid input is rejected with a message; wrong IP leads to a clear "could not reach" state; real IP proceeds to pairing |
+| A6 | Phone Wi-Fi off while searching | A clear message, no crash |
+
+### B. Pairing, wrong code, re-pairing
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| B1 | Pick the TV | "Contacting the TV…", then a 6-character code appears on the TV. Record how the code looks (case, characters) |
+| B2 | Enter the correct code | "Paired!", remote opens, status "Connected" |
+| B3 | Pair again, enter a wrong code (typo) | The app says the code is wrong and lets you retry; then the right code works. Record whether the TV keeps the code on screen |
+| B4 | Use "Pair again" on an already paired TV | No duplicate entry in My TVs |
+| B5 | Switch the TV off, then try to pair | Clear unreachable error with Try again |
+| B6 | Rotate the phone during pairing | Pairing continues |
+
+### C. Navigation, OK, Back, Home, long presses
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| C1 | Tap each D-pad direction and OK on the home screen | Correct direction (left is really left) |
+| C2 | Hold an arrow on a long row | Smooth repetition. Record speed |
+| C3 | Back, Home, Menu | Each behaves as expected. Record what Menu does on this TV |
+| C4 | Hold OK on an app icon | Context menu opens (a real long press) |
+| C5 | Hold Back and Home | Record the TV's reaction (device dependent) |
+
+### D. Volume, mute, phone volume buttons
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| D1 | Volume −/+ | TV volume changes. Record whether the on-screen TV volume bar appears |
+| D2 | Hold volume + | Repeats. Record speed |
+| D3 | Mute twice | Mutes and unmutes. Record whether the app's status line shows it |
+| D4 | Phone volume buttons on the remote screen | Control the TV, hold repeats; phone volume does not change |
+| D5 | Switch the setting off; leave the remote screen | Phone buttons control the phone again |
+| D6 | Change TV volume with the TV's own remote | The status card volume text follows, or record that the TV does not report it (e.g. external audio/CEC) |
+
+### E. Text entry
+Focus a TV text field first (for example the search box of a video app).
+
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| E1 | Send `hello world` | Appears in the field |
+| E2 | Send `שלום עולם` | Record exactly what appears (correct letters? order? nothing?) |
+| E3 | Send an emoji such as `👍` | Record what appears |
+| E4 | Send three texts one after another | Record whether text is appended, replaced, or lost |
+| E5 | Change to a different TV text field, send again | Goes to the newly focused field |
+| E6 | Backspace and Enter buttons | Act in the TV field |
+| E7 | Turn phone Wi-Fi off, press Send | Message says nothing was sent and the draft is still in the box; after reconnecting, Send works |
+
+### F. App shortcuts
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| F1 | Tap each built-in shortcut | Opens that app, or record "app not installed" and what the TV shows |
+| F2 | Add a custom deep link, then use it | Opens the target |
+| F3 | Add an invalid link | Rejected with a message |
+
+### G. Standby and wake
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| G1 | Put the TV in standby with its own remote | The app shows reconnecting. Record how long until the state changes |
+| G2 | Wake the TV with its own remote | The app reconnects by itself. Record the delay |
+| G3 | Press Power in the app while the TV is on | Goes to standby (record) |
+| G4 | Press Power in the app while the TV is in standby | Record whether it wakes the TV or whether the key is not delivered (see section 6) |
+| G5 | Leave the TV off or in deep sleep for 10 minutes, then try | Record whether the app can connect at all |
+
+### H. Wi-Fi loss and restoration
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| H1 | Phone Wi-Fi off, wait 20 s, on | The app reconnects without restart. Record time |
+| H2 | TV Wi-Fi/network off and on | The app reconnects. Record time |
+| H3 | Reboot the router or give the TV a new IP | Record the outcome. Automatic recovery of a changed address is **not implemented** (known limitation, see `docs/KNOWN_LIMITATIONS.md`) |
+
+### I. Background and foreground
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| I1 | Leave the app for 10 s, return | Still connected |
+| I2 | Leave it for 2 minutes, return | Reconnects by itself. Record time |
+| I3 | Hold an arrow, then lock the phone | The TV does not keep scrolling afterwards |
+
+### J. Rotation and rapid reconnect
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| J1 | Rotate on the remote screen | Stays connected |
+| J2 | Type a draft in the keyboard sheet, rotate | Draft is kept |
+| J3 | Switch away and back ten times quickly | Ends up connected, no stuck state |
+| J4 | Tap "Reconnect" repeatedly while disconnected | Ends up connected or failed cleanly, no crash |
+
+### K. Widget and Quick Settings tile (app UI closed)
+Add both. Swipe the app away from recents before each test.
+
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| K1 | Widget: Vol −, Vol +, Mute | TV reacts. Record the delay |
+| K2 | Widget: Power | Record the TV's reaction |
+| K3 | Tile tap | TV reacts; the tile shows the result |
+| K4 | Tap the widget twice quickly, and widget plus tile together | No crash; the TV receives sensible input |
+| K5 | TV off or unreachable | A failure message, no crash |
+
+### L. Multiple saved devices
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| L1 | Pair a second TV | Both appear in the TV menu and in My TVs |
+| L2 | Switch between them | Keys go only to the selected TV |
+| L3 | Rename and remove | Work; removing the active TV disconnects cleanly |
+| L4 | Force-stop and reopen | Reconnects to the last used TV |
+
+### M. Forgotten pairing and certificate problems (where practical)
+The menu path to forget a paired phone differs per vendor (often *Android TV Remote Service > Clear data*, or
+*Remotes & accessories*). Record the path you used.
+
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| M1 | Make the TV forget this phone | The app reports it is no longer paired and offers "Pair again". Record which message appeared |
+| M2 | Pair again | Works |
+| M3 | If clearing the TV's remote service data changes its certificate: reconnect | Record whether the app says "no longer paired" or "security certificate changed", and that it never connects silently |
+| M4 | Not practical on most setups: a different device at the saved IP | If you can arrange it: must be refused. Otherwise leave *not tested* |
+
+### N. Languages, themes, accessibility
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| N1 | Phone language Hebrew | Mirrored layout, **D-pad left still moves left**, rewind still on the left |
+| N2 | TalkBack on | Every control is announced; D-pad directions activate by double tap |
+| N3 | Largest font | Nothing cut off, the screen scrolls |
+| N4 | System / Dark / Light themes | All readable |
+
+### O. Privacy spot check (optional)
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| O1 | Watch router logs or a network monitor while using the app | Only the TV (ports 6466/6467) and mDNS |
+
+## 6. Power on and off: documented limits
+
+The app sends the same power key as the official remote, over Wi-Fi, to the TV's *Android TV Remote Service*.
+That only works while that service is reachable.
+
+- If the TV is **fully off, or in a deep standby where Wi-Fi and the remote service are shut down**, there is
+  nothing to receive the command. A Wi-Fi remote **cannot wake such a device**, and the app does not claim it
+  can. In that state the app shows the TV as unreachable and keeps retrying.
+- Many TVs keep the service available in light standby, and a power key may then wake them. This differs by
+  manufacturer, model and settings (for example "Wake on network / Wi-Fi" options), so it must be recorded
+  per device in items G3 to G5, not assumed.
+- Wake-on-LAN is not implemented; it is listed as an idea in `docs/ISSUES.md`.
+
+## 7. Reporting
+
+Send the results file in a pull request, or open a *Device compatibility report* issue (template in the
+repository) and paste the filled header plus every item that is not a plain pass. Compatibility claims in the
+README are added only from recorded evidence.

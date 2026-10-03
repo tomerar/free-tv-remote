@@ -20,7 +20,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
+import java.io.IOException
+import java.security.GeneralSecurityException
 
 fun interface SessionFactory {
     suspend fun create(scope: CoroutineScope, tv: SavedTv): RemoteSession
@@ -49,6 +53,9 @@ class RemoteController(
 ) : KeySender {
     private val session = MutableStateFlow<RemoteSession?>(null)
     private val _activeTv = MutableStateFlow<SavedTv?>(null)
+
+    private val sessionLock = Mutex()
+    private val quickLock = Mutex()
 
     @Volatile
     private var foreground = false
@@ -79,24 +86,49 @@ class RemoteController(
         }
     }
 
-    private suspend fun apply(target: SavedTv?) {
-        val current = _activeTv.value
-        if (target == current) return
-        val sameConnectionTarget =
-            current != null && target != null &&
-                current.id == target.id && current.host == target.host && current.pin == target.pin &&
-                current.remotePort == target.remotePort
-        if (sameConnectionTarget) {
-            _activeTv.value = target // only the display name changed
-            return
+    private suspend fun apply(target: SavedTv?) =
+        sessionLock.withLock {
+            val current = _activeTv.value
+            if (target == current) return@withLock
+            val sameConnectionTarget =
+                current != null && target != null &&
+                    current.id == target.id && current.host == target.host && current.pin == target.pin &&
+                    current.remotePort == target.remotePort
+            if (sameConnectionTarget) {
+                _activeTv.value = target // only the display name changed
+                return@withLock
+            }
+            // Swap sessions first so that observers never see the new TV paired with the old connection state.
+            // If the phone's identity cannot be loaded the TV is still selected, just not connected: the
+            // user can retry with "Reconnect" (see retryCreate) instead of the app crashing.
+            val replacement = target?.let { createSessionOrNull(it) }
+            val old = session.value
+            session.value = replacement
+            _activeTv.value = target
+            old?.stop()
+            if (foreground) replacement?.start()
         }
-        // Swap sessions first so that observers never see the new TV paired with the old connection state.
-        val replacement = target?.let { factory.create(scope, it) }
-        val old = session.value
-        session.value = replacement
-        _activeTv.value = target
-        old?.stop()
-        if (foreground) replacement?.start()
+
+    private suspend fun createSessionOrNull(tv: SavedTv): RemoteSession? =
+        try {
+            factory.create(scope, tv)
+        } catch (e: IOException) {
+            null // identity unreadable / unwritable (storage full, keystore problem)
+        } catch (e: GeneralSecurityException) {
+            null
+        }
+
+    /** Tries again to build the session of the selected TV after an earlier identity failure. */
+    private fun retryCreate() {
+        scope.launch {
+            sessionLock.withLock {
+                val tv = _activeTv.value ?: return@withLock
+                if (session.value != null) return@withLock
+                val created = createSessionOrNull(tv) ?: return@withLock
+                session.value = created
+                if (foreground) created.start()
+            }
+        }
     }
 
     /** Switches to another saved TV and remembers it as the last used one. */
@@ -107,7 +139,7 @@ class RemoteController(
     fun onAppForeground() {
         foreground = true
         disconnectJob?.cancel()
-        session.value?.start()
+        session.value?.start() ?: retryCreate()
     }
 
     /** Keeps the link for a short grace period (app switching), then disconnects to save battery. */
@@ -123,8 +155,13 @@ class RemoteController(
 
     /** Manual retry, e.g. after the connection ended in a failure state. */
     fun reconnect() {
-        session.value?.stop()
-        session.value?.start()
+        val current = session.value
+        if (current == null) {
+            retryCreate()
+        } else {
+            current.stop()
+            current.start()
+        }
     }
 
     // --- Commands --------------------------------------------------------------------------------
@@ -151,10 +188,14 @@ class RemoteController(
      * For the Quick Settings tile and the widget, which can run while the app UI is gone: reuses the live
      * session if there is one, otherwise connects briefly, sends the key and disconnects again.
      */
-    suspend fun sendQuickKey(code: Int): Boolean {
+    suspend fun sendQuickKey(code: Int): Boolean = quickLock.withLock { sendQuickKeyLocked(code) }
+
+    // Serialised: simultaneous widget/tile taps must not open several temporary connections to the TV at once
+    // (many TVs only keep one remote connection and may drop the others).
+    private suspend fun sendQuickKeyLocked(code: Int): Boolean {
         if (connection.value == ConnectionState.Connected) return pressKey(code)
         val tv = _activeTv.value ?: tvs.lastUsed.first() ?: return false
-        val temporary = factory.create(scope, tv)
+        val temporary = createSessionOrNull(tv) ?: return false
         return try {
             temporary.start()
             val state =

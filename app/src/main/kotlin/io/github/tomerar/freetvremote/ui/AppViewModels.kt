@@ -15,6 +15,7 @@ import io.github.tomerar.freetvremote.remote.KeyGestures
 import io.github.tomerar.freetvremote.remote.KeyboardDraftController
 import io.github.tomerar.freetvremote.remote.PairingCoordinator
 import io.github.tomerar.freetvremote.remote.PairingState
+import io.github.tomerar.freetvremote.remote.ShortcutLauncher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -73,9 +74,12 @@ class RemoteViewModel(
         viewModelScope.launch { controller.pressKey(code) }
     }
 
-    fun launch(shortcut: AppShortcut) {
-        viewModelScope.launch { controller.launchApp(shortcut.link) }
-    }
+    private val shortcuts = ShortcutLauncher(viewModelScope, controller::launchApp)
+
+    /** Names of shortcuts that could not be sent, for a short message. */
+    val shortcutNotSent = shortcuts.notSent
+
+    fun launch(shortcut: AppShortcut) = shortcuts.launch(shortcut)
 
     fun switchTv(id: String) {
         viewModelScope.launch { controller.selectTv(id) }

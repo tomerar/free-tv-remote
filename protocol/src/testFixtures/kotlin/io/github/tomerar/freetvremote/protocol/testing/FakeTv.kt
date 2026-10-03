@@ -85,6 +85,9 @@ public class FakeTv(
 
     /** Remote connections currently open (accepted, paired and not yet closed). */
     public val activeRemoteConnections: AtomicInteger = AtomicInteger()
+
+    /** The highest number of remote connections that were open at the same time. */
+    public val peakRemoteConnections: AtomicInteger = AtomicInteger()
     private val remoteWriters = CopyOnWriteArrayList<(RemoteMessage) -> Unit>()
     public val pairedCount: Int get() = pairedPins.size
 
@@ -220,7 +223,7 @@ public class FakeTv(
             return // A real TV closes the channel for unknown clients.
         }
         remoteConnections.incrementAndGet()
-        activeRemoteConnections.incrementAndGet()
+        peakRemoteConnections.accumulateAndGet(activeRemoteConnections.incrementAndGet(), ::maxOf)
         val input = socket.inputStream
         val out = socket.outputStream
         val writeLock = Any()

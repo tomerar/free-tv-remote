@@ -55,6 +55,19 @@ val verifyReleaseSigning =
 
 tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn(verifyReleaseSigning) }
 
+// The commit a build was made from, shown in Settings > About so hardware test reports name an exact build.
+// Falls back to "unknown" when git is unavailable (e.g. building from a source archive).
+val gitCommit: String =
+    runCatching {
+        providers
+            .exec {
+                commandLine("git", "rev-parse", "--short=9", "HEAD")
+                isIgnoreExitValue = true
+            }.standardOutput.asText
+            .get()
+            .trim()
+    }.getOrDefault("").ifEmpty { "unknown" }
+
 android {
     namespace = "io.github.tomerar.freetvremote"
     compileSdk {
@@ -67,6 +80,7 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+        buildConfigField("String", "GIT_COMMIT", "\"$gitCommit\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

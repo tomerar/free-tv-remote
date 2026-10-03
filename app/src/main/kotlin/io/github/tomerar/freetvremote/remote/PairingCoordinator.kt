@@ -13,6 +13,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.security.GeneralSecurityException
 
 enum class PairingFailure {
     /** The TV could not be reached (off, wrong address, other network, no permission). */
@@ -23,6 +25,9 @@ enum class PairingFailure {
 
     /** The TV answered in a way we do not understand. */
     UNEXPECTED,
+
+    /** This phone could not prepare its security key or save the pairing (storage problem). */
+    INTERNAL,
 }
 
 sealed interface PairingState {
@@ -87,6 +92,10 @@ class PairingCoordinator(
                     _state.value = PairingState.AwaitingCode()
                 } catch (e: PairingException) {
                     _state.value = PairingState.Failed(e.toFailure())
+                } catch (e: IOException) {
+                    _state.value = PairingState.Failed(PairingFailure.INTERNAL) // identity could not be loaded or stored
+                } catch (e: GeneralSecurityException) {
+                    _state.value = PairingState.Failed(PairingFailure.INTERNAL)
                 }
             }
     }
@@ -113,6 +122,9 @@ class PairingCoordinator(
                 } catch (e: PairingException) {
                     closeSession()
                     _state.value = PairingState.Failed(e.toFailure())
+                } catch (e: IOException) {
+                    closeSession() // the TV accepted, but the pairing could not be stored on this phone
+                    _state.value = PairingState.Failed(PairingFailure.INTERNAL)
                 }
             }
     }

@@ -25,13 +25,20 @@ body:
   - type: input
     id: app-version
     attributes:
-      label: App version
+      label: App version and commit
+      description: Settings > About shows both, for example "0.1.1 (a1b2c3d4e)".
+    validations:
+      required: true
+  - type: input
+    id: phone
+    attributes:
+      label: Phone model and Android version
     validations:
       required: true
   - type: checkboxes
     id: works
     attributes:
-      label: What worked? (tick everything that did)
+      label: What worked? (tick only what you actually verified; see TESTING.md for the full procedure and results file format)
       options:
         - label: The TV was found automatically
         - label: Pairing with the code

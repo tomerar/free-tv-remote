@@ -51,6 +51,7 @@
     <string name="remote_switch_tv">החלפת טלוויזיה</string>
     <string name="remote_edit_shortcuts">עריכת קיצורים</string>
     <string name="remote_launch_shortcut">פתיחת %1$s בטלוויזיה</string>
+    <string name="shortcut_not_sent">לא ניתן לפתוח את %1$s: הפקודה לא נשלחה. בדקו את החיבור לטלוויזיה.</string>
 
     <!-- Keyboard -->
     <string name="keyboard_title">הקלדה בטלוויזיה</string>
@@ -106,6 +107,7 @@
     <string name="pair_failed_unreachable">לא ניתן להגיע לטלוויזיה. ודאו שהיא דולקת ומחוברת לאותה רשת Wi-Fi.</string>
     <string name="pair_failed_rejected">הטלוויזיה לא אישרה את ההתאמה. התחילו מחדש והזינו את הקוד החדש.</string>
     <string name="pair_failed_unexpected">הטלוויזיה השיבה באופן בלתי צפוי. ודאו שהיא תומכת בפרוטוקול השלט של Android TV.</string>
+    <string name="pair_failed_internal">הטלפון לא הצליח לשמור את ההתאמה (בעיית אחסון או מפתח אבטחה). פנו מקום באחסון ונסו שוב.</string>
     <string name="pair_cancel">ביטול ההתאמה</string>
 
     <!-- Shortcuts -->

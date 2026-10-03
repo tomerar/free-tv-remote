@@ -43,3 +43,15 @@ state descriptions for the connection card).
 ## 10. Add Weblate configuration  [i18n, infrastructure]
 Add a `weblate` component file mask for `app/src/main/res/values-*/strings.xml` (remember that Hebrew is `values-iw`)
 and document it in CONTRIBUTING.md.
+
+## 11. Re-find a saved TV after its IP address changes  [enhancement, reliability]
+See "A saved TV is not found again after its IP address changes" in [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) for
+the pinned-key probe design. **Done when** a saved TV whose address changed reconnects without re-pairing and without
+creating a duplicate, and a different device at the old address is never accepted (tests against `FakeTv`).
+
+## 12. Show when keys cannot be delivered  [enhancement, UX]
+Dim or disable the remote controls while the connection is down, instead of silently dropping presses.
+
+## 13. Reuse the temporary quick-key connection for a few seconds  [enhancement]
+Rapid widget taps (volume up several times) each open a new connection today. Keep one temporary session alive
+for a short idle window.
