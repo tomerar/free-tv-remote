@@ -95,7 +95,8 @@ ignored). `localeFilters` therefore must include `iw`; with only `he` the Hebrew
 the APK (found by inspecting the APK, now guarded by a unit test and a CI step). `locales_config.xml` uses `he`.
 For Weblate set the file mask for `he` to `values-iw/strings.xml`. Fastlane metadata uses `he` as F-Droid expects.
 
-**D19. Default theme is Dark** (a remote is mostly used in a dark room); System and Light are one tap away.
+**D19. Default theme follows the system** (it was Dark until v0.1.3: a remote is often used in a dark room, but the
+app should behave like other apps by default); Dark and Light are one tap away. See D24 for colors.
 
 **D20. Tile and widget use plain `TileService` and `RemoteViews`**, not Jetpack Glance: smaller, no extra
 dependency, enough for four buttons.
@@ -108,6 +109,36 @@ handful of small records.
 
 **D23. Backups are disabled** (`allowBackup=false` plus explicit extraction rules): pairings are bound to the device
 identity and would be useless after a restore.
+
+**D24. Colors follow the phone (Material You) on Android 12+, with a Settings switch to turn it off.** The teal
+scheme remains the fallback for older phones and when the switch is off. Window width is capped (640 dp, centered)
+so tablets and unfolded screens do not stretch the remote. Every tappable control of the remote is checked to be at
+least 48 x 48 dp (`TouchTargetTest`).
+
+**D25. Searching for TVs is explicit and bounded.** Nothing listens on the network until the user taps "Search for
+TVs"; the search ends by itself after 15 s with a progress bar, and leaving the screen cancels it. When nothing is
+found the screen explains what to check and opens the manual IP entry. Rationale: continuous mDNS discovery drains
+the battery and gave no signal about whether anything was happening (`DiscoverViewModel`, `DiscoverViewModelTest`).
+
+**D26. Closing a connected TLS socket never happens on the main thread.** It writes a close alert, and Android
+throws `NetworkOnMainThreadException` for that on the main thread; after pairing succeeded this could close the app
+(the pairing was already saved, so reopening worked). `closeOffThread` closes on a short-lived daemon thread
+(`SocketIo.kt`). Background coroutine failures in the application scope are recorded instead of crashing the app.
+The first fix was made from reading the code and the symptoms; confirm on a device (TESTING.md, B2).
+
+**D27. A local, rolling event log with copy/share (Settings > Diagnostics).** Two files of at most 5 MB (10 MB in
+total) in app-private storage; "Copy log" puts the newest 100 KB on the clipboard (the system limits what the
+clipboard accepts), "Share" sends the whole log as a file through a `FileProvider` limited to that file. It records
+pairing steps, connection state changes, discovery results and errors/crashes, never pairing codes, keys, typed text
+or key presses; the last octet of IPv4 addresses is masked. Nothing is sent anywhere unless the user shares it. It
+replaced the earlier "last crash" file.
+
+**D28. The status card has two states.** Closed (default, one line): connection, TV power, volume, app. Open (tap):
+model/vendor, volume bar, app, address, connection time, a keyboard shortcut when the TV asked for text, and a link
+to Diagnostics. Problems and their actions (permission, Reconnect, Pair again) are never behind the tap. The app name
+comes from the TV's own `label` when sent, else a small package map, else (open state only) the package id. All of
+it is derived in pure functions (`AppName.kt`) with unit tests; the TV's text-field request is treated as best
+effort (see docs/KNOWN_LIMITATIONS.md).
 
 ## Testing
 

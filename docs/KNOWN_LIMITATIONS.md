@@ -42,6 +42,16 @@ Text entry (counters learned from the TV's IME messages), feature negotiation, a
 volume reporting follow the community's description of the protocol and `FakeTv`, not observed firmware. Whether
 "sent" means "applied by the TV" is unknown: the app only knows that the write succeeded.
 
+## Status card details depend on what the TV reports (unverified on hardware)
+
+The compact line (connection, power, volume, app) and the opened details (model, address, connection time) use what
+the TV sends. Whether a given TV sends the readable app name (`label`), the model and vendor, or the text-field
+request that drives the "The TV is asking for text" shortcut is **not verified on hardware**. Facts the TV does not
+send are left out, never guessed. The text-field hint is best effort: the protocol has no known "text field closed"
+message, so the hint is cleared when the foreground app changes or the connection restarts, and it can stay on
+screen after the TV's keyboard was closed. The keyboard button in the top bar always works regardless. Settings >
+Diagnostics records (without any content) when the TV sends an app label or a text-field request, to find out.
+
 ## "No longer paired" is inferred, not reported (unverified on hardware)
 
 The session reports `NOT_PAIRED` after two connections in a row that the TV closes before the handshake

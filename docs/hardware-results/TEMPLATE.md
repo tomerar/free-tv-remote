@@ -42,6 +42,7 @@
 | D4 | not tested | |
 | D5 | not tested | |
 | D6 | not tested | |
+| D7 | not tested | |
 | E1 | not tested | |
 | E2 | not tested | |
 | E3 | not tested | |
@@ -49,6 +50,7 @@
 | E5 | not tested | |
 | E6 | not tested | |
 | E7 | not tested | |
+| E8 | not tested | |
 | F1 | not tested | |
 | F2 | not tested | |
 | F3 | not tested | |

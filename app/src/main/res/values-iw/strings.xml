@@ -22,16 +22,32 @@
     <string name="status_no_tv">לא נבחרה טלוויזיה</string>
     <string name="action_reconnect">התחברות מחדש</string>
     <string name="action_pair_again">התאמה מחדש</string>
-    <string name="tv_power_on">הטלוויזיה דולקת</string>
-    <string name="tv_power_off">הטלוויזיה כבויה או במצב המתנה</string>
-    <string name="tv_volume">עוצמת שמע %1$d מתוך %2$d</string>
     <string name="tv_volume_muted">מושתק</string>
     <string name="tv_app_home">מסך הבית</string>
     <string name="tv_app_netflix">Netflix</string>
     <string name="tv_app_youtube">YouTube</string>
     <string name="tv_app_disney">Disney+</string>
     <string name="tv_app_prime">Prime Video</string>
-    <string name="tv_current_app">מוצג כעת: %1$s</string>
+    <string name="tv_power_short_on">דולקת</string>
+    <string name="tv_power_short_off">כבויה</string>
+    <string name="tv_volume_short">עוצמה %1$d</string>
+    <string name="status_expand">הצגת פרטים</string>
+    <string name="status_collapse">הסתרת פרטים</string>
+    <string name="status_state_expanded">פתוח</string>
+    <string name="status_state_collapsed">סגור</string>
+    <string name="status_detail_tv">טלוויזיה</string>
+    <string name="status_detail_volume">עוצמת שמע</string>
+    <string name="status_detail_app">אפליקציה</string>
+    <string name="status_detail_address">כתובת</string>
+    <string name="status_detail_connected">מחובר</string>
+    <string name="status_connected_just_now">הרגע</string>
+    <plurals name="status_connected_minutes">
+        <item quantity="one">דקה</item>
+        <item quantity="two">%d דקות</item>
+        <item quantity="other">%d דקות</item>
+    </plurals>
+    <string name="status_text_field_hint">הטלוויזיה מבקשת טקסט.</string>
+    <string name="status_text_field_action">הקלדה</string>
 
     <!-- Remote screen -->
     <string name="remote_dpad">לוח ניווט</string>

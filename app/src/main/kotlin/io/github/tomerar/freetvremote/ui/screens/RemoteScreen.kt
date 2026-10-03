@@ -106,6 +106,7 @@ fun RemoteScreen(
     onManageTvs: () -> Unit,
     onEditShortcuts: () -> Unit,
     onPairAgain: (host: String, name: String) -> Unit,
+    onOpenDiagnostics: () -> Unit,
 ) {
     val container = LocalAppContainer.current
     val vm: RemoteViewModel = viewModel(factory = simpleFactory { RemoteViewModel(container) })
@@ -196,7 +197,13 @@ fun RemoteScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            StatusCard(state, vm::reconnect, onPairAgain)
+            StatusCard(
+                state = state,
+                onReconnect = vm::reconnect,
+                onPairAgain = onPairAgain,
+                onOpenKeyboard = { showKeyboard = true },
+                onOpenDiagnostics = onOpenDiagnostics,
+            )
             RemoteControlsPanel(vm.gestures, haptics, vm::tap)
             ShortcutRow(state.shortcuts, onLaunch = vm::launch, onEdit = onEditShortcuts)
             Spacer(Modifier.height(8.dp))
@@ -241,99 +248,6 @@ private fun TvMenu(
         )
     }
 }
-
-@Composable
-private fun StatusCard(state: RemoteUiState, onReconnect: () -> Unit, onPairAgain: (String, String) -> Unit) {
-    val context = LocalContext.current
-    var permissionGranted by remember { mutableStateOf(LocalNetworkPermission.isGranted(context)) }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionGranted = it }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { permissionGranted = LocalNetworkPermission.isGranted(context) }
-
-    val connection = state.connection
-    val failure = (connection as? ConnectionState.Failed)?.reason
-    val connected = connection == ConnectionState.Connected
-    val dot =
-        when {
-            connected -> Color(0xFF4CD964)
-            failure != null -> MaterialTheme.colorScheme.error
-            else -> Color(0xFFFFB020)
-        }
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box(Modifier.size(10.dp).background(dot, CircleShape))
-                Text(connectionLabel(state), style = MaterialTheme.typography.titleSmall)
-            }
-            if (connected) TvDetails(state.tvState)
-            if (!permissionGranted) {
-                Text(stringResource(R.string.permission_banner), style = MaterialTheme.typography.bodyMedium)
-                Button(onClick = { launcher.launch(LocalNetworkPermission.PERMISSION) }) {
-                    Text(stringResource(R.string.permission_grant))
-                }
-            }
-            when {
-                failure != null && state.activeTv != null -> {
-                    Button(onClick = { onPairAgain(state.activeTv.host, state.activeTv.name) }) {
-                        Text(stringResource(R.string.action_pair_again))
-                    }
-                }
-
-                !connected && state.activeTv != null -> {
-                    TextButton(onClick = onReconnect) {
-                        Text(stringResource(R.string.action_reconnect))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TvDetails(tv: TvState) {
-    val parts =
-        buildList {
-            tv.isOn?.let { add(stringResource(if (it) R.string.tv_power_on else R.string.tv_power_off)) }
-            if (tv.isMuted == true) {
-                add(stringResource(R.string.tv_volume_muted))
-            } else if (tv.volumeLevel != null && tv.volumeMax != null) {
-                add(stringResource(R.string.tv_volume, tv.volumeLevel!!, tv.volumeMax!!))
-            }
-            tv.currentApp?.let(::friendlyAppName)?.let { add(stringResource(R.string.tv_current_app, stringResource(it))) }
-        }
-    if (parts.isNotEmpty()) {
-        Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-private fun connectionLabel(state: RemoteUiState): String =
-    when (val c = state.connection) {
-        ConnectionState.Connected -> {
-            stringResource(R.string.status_connected)
-        }
-
-        ConnectionState.Connecting -> {
-            stringResource(R.string.status_connecting)
-        }
-
-        is ConnectionState.Reconnecting -> {
-            stringResource(R.string.status_reconnecting, c.attempt)
-        }
-
-        is ConnectionState.Failed -> {
-            when (c.reason) {
-                FailureReason.NOT_PAIRED -> stringResource(R.string.status_not_paired)
-                FailureReason.CERTIFICATE_MISMATCH -> stringResource(R.string.status_cert_mismatch)
-            }
-        }
-
-        ConnectionState.Idle -> {
-            if (state.activeTv == null) stringResource(R.string.status_no_tv) else stringResource(R.string.status_idle)
-        }
-    }
 
 /** All the keys of the remote. [onTap] is the single-tap action used by TalkBack's "activate". */
 @Composable

@@ -33,9 +33,10 @@ fun interface SessionFactory {
 class DefaultSessionFactory(
     private val identity: IdentityProvider,
     private val config: (SavedTv) -> RemoteSessionConfig = { RemoteSessionConfig(port = it.remotePort) },
+    private val log: (String) -> Unit = {},
 ) : SessionFactory {
     override suspend fun create(scope: CoroutineScope, tv: SavedTv): RemoteSession =
-        RemoteSession(scope, tv.host, identity.get(), tv.pinBytes, config(tv))
+        RemoteSession(scope, tv.host, identity.get(), tv.pinBytes, config(tv), log)
 }
 
 /**
@@ -71,6 +72,12 @@ class RemoteController(
         session
             .flatMapLatest { it?.connectionState ?: flowOf(ConnectionState.Idle) }
             .stateIn(scope, SharingStarted.Eagerly, ConnectionState.Idle)
+
+    /** When the current connection became usable (epoch milliseconds), or `null` while not connected. */
+    val connectedSince: StateFlow<Long?> =
+        session
+            .flatMapLatest { it?.connectedSince ?: flowOf(null) }
+            .stateIn(scope, SharingStarted.Eagerly, null)
 
     val tvState: StateFlow<TvState> =
         session

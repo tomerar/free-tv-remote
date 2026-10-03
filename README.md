@@ -15,7 +15,7 @@ No ads. No account. No cloud. No tracking.
 
 ## Download
 
-**[⬇ Download the latest APK (v0.1.6)](https://github.com/tomerar/free-tv-remote/releases/download/v0.1.6/FreeTVRemote-v0.1.6.apk)**
+**[⬇ Download the latest APK (v0.1.7)](https://github.com/tomerar/free-tv-remote/releases/download/v0.1.7/FreeTVRemote-v0.1.7.apk)**
 · [All releases](https://github.com/tomerar/free-tv-remote/releases/latest)
 · [Install guide](docs/INSTALL.md)
 

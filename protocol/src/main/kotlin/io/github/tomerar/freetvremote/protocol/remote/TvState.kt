@@ -7,6 +7,10 @@ public data class TvState(
     val volumeMax: Int? = null,
     val isMuted: Boolean? = null,
     val currentApp: String? = null,
+    /** The readable name of [currentApp] as the TV reports it (for example "Netflix"), when it sends one. */
+    val currentAppLabel: String? = null,
+    /** The TV asked for text input (its on-screen keyboard is up). Best effort: reset on reconnect and on app change. */
+    val textFieldActive: Boolean = false,
     val deviceModel: String? = null,
     val deviceVendor: String? = null,
 )

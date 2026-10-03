@@ -50,6 +50,7 @@ fun AppNav(startOnboarding: Boolean, navController: NavHostController = remember
                 onManageTvs = { navController.navigate(Routes.TVS) },
                 onEditShortcuts = { navController.navigate(Routes.SHORTCUTS) },
                 onPairAgain = { host, name -> navController.navigate(Routes.pair(host, name)) },
+                onOpenDiagnostics = { navController.navigate(Routes.DIAGNOSTICS) },
             )
         }
         composable(Routes.DISCOVER) {

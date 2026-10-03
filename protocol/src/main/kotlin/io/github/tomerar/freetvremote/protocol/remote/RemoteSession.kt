@@ -53,6 +53,9 @@ public class RemoteSession(
     private val identity: ClientIdentity,
     private val pinnedKey: ByteArray,
     private val config: RemoteSessionConfig = RemoteSessionConfig(),
+    /** Receives short, non-sensitive notes (never message contents) for the app's diagnostics log. */
+    private val log: (String) -> Unit = {},
+    private val clock: () -> Long = System::currentTimeMillis,
 ) {
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Idle)
     private val _tvState = MutableStateFlow(TvState())
@@ -91,7 +94,15 @@ public class RemoteSession(
     @Volatile
     internal var testHooks: SessionTestHooks? = null
 
+    private val _connectedSince = MutableStateFlow<Long?>(null)
+    private val seenKinds =
+        java.util.concurrent.ConcurrentHashMap
+            .newKeySet<String>()
+
     public val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
+
+    /** When the current connection became usable (epoch milliseconds), or `null` while not connected. */
+    public val connectedSince: StateFlow<Long?> = _connectedSince.asStateFlow()
     public val tvState: StateFlow<TvState> = _tvState.asStateFlow()
 
     /** Starts connecting (and staying connected). Idempotent while a session is running. */
@@ -99,7 +110,7 @@ public class RemoteSession(
         synchronized(lock) {
             if (job?.isActive == true) return
             val gen = ++generation
-            _connectionState.value = ConnectionState.Connecting
+            publish(ConnectionState.Connecting)
             job = scope.launch { supervise(gen) }
         }
     }
@@ -112,8 +123,18 @@ public class RemoteSession(
             job = null
             link?.socket?.closeOffThread() // stop() may be called from the main thread
             link = null
-            _connectionState.value = ConnectionState.Idle
+            publish(ConnectionState.Idle)
         }
+    }
+
+    /** Publishes a connection state together with the time it became [ConnectionState.Connected]. Call under [lock]. */
+    private fun publish(state: ConnectionState) {
+        _connectedSince.value = if (state == ConnectionState.Connected) _connectedSince.value ?: clock() else null
+        _connectionState.value = state
+    }
+
+    private fun noteOnce(kind: String) {
+        if (seenKinds.add(kind)) log("the TV sent $kind")
     }
 
     private inline fun ifCurrent(gen: Long, block: () -> Unit) {
@@ -192,15 +213,15 @@ public class RemoteSession(
             attempt++
             ifCurrent(gen) {
                 if (outcome == Outcome.Unreachable) _tvState.update { it.copy(isOn = false) }
-                _connectionState.value = ConnectionState.Reconnecting(attempt, wait)
+                publish(ConnectionState.Reconnecting(attempt, wait))
             }
             delay(wait)
-            ifCurrent(gen) { _connectionState.value = ConnectionState.Connecting }
+            ifCurrent(gen) { publish(ConnectionState.Connecting) }
         }
     }
 
     private fun fail(gen: Long, reason: FailureReason) {
-        ifCurrent(gen) { _connectionState.value = ConnectionState.Failed(reason) }
+        ifCurrent(gen) { publish(ConnectionState.Failed(reason)) }
     }
 
     private enum class Outcome { HandshakeDone, Early, Unreachable, PinMismatch }
@@ -210,6 +231,7 @@ public class RemoteSession(
         val trust = PinnedTrustManager(pinnedKey)
         val sock = TlsSupport.socketFactory(identity, trust).createSocket() as SSLSocket
         val attempt = attemptSeq.incrementAndGet()
+        seenKinds.clear()
         val mine = Link(gen, sock)
         val registered =
             synchronized(lock) {
@@ -289,8 +311,9 @@ public class RemoteSession(
             write(mine.socket, RemoteMessages.setActive())
             onHandshakeDone()
             ifCurrent(gen) {
+                _tvState.update { it.copy(textFieldActive = false) }
                 mine.ready = true
-                _connectionState.value = ConnectionState.Connected
+                publish(ConnectionState.Connected)
             }
         }
         message.remote_start?.let { start -> ifCurrent(gen) { _tvState.update { it.copy(isOn = start.started) } } }
@@ -305,12 +328,27 @@ public class RemoteSession(
                 }
             }
         }
+        message.remote_ime_show_request?.let {
+            noteOnce("a text field request")
+            ifCurrent(gen) { _tvState.update { it.copy(textFieldActive = true) } }
+        }
         message.remote_ime_key_inject?.let { ime ->
             ifCurrent(gen) {
                 imeCounter = ime.app_info?.counter ?: imeCounter
                 fieldCounter = ime.text_field_status?.counter_field ?: fieldCounter
                 val app = ime.app_info?.app_package.orEmpty()
-                if (app.isNotEmpty()) _tvState.update { it.copy(currentApp = app) }
+                val label = ime.app_info?.label.orEmpty()
+                if (label.isNotEmpty()) noteOnce("an app label")
+                if (app.isNotEmpty()) {
+                    _tvState.update {
+                        val changed = it.currentApp != app
+                        it.copy(
+                            currentApp = app,
+                            currentAppLabel = label.ifEmpty { null } ?: it.currentAppLabel.takeUnless { changed },
+                            textFieldActive = it.textFieldActive && !changed,
+                        )
+                    }
+                }
             }
         }
     }

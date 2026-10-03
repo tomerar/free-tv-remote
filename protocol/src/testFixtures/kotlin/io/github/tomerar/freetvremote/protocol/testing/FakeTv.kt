@@ -14,6 +14,7 @@ import io.github.tomerar.freetvremote.protocol.proto.RemoteConfigure
 import io.github.tomerar.freetvremote.protocol.proto.RemoteDeviceInfo
 import io.github.tomerar.freetvremote.protocol.proto.RemoteDirection
 import io.github.tomerar.freetvremote.protocol.proto.RemoteImeKeyInject
+import io.github.tomerar.freetvremote.protocol.proto.RemoteImeShowRequest
 import io.github.tomerar.freetvremote.protocol.proto.RemoteMessage
 import io.github.tomerar.freetvremote.protocol.proto.RemotePingRequest
 import io.github.tomerar.freetvremote.protocol.proto.RemoteSetActive
@@ -328,6 +329,21 @@ public class FakeTv(
     /** Pushes a volume update to every open remote connection (as a TV does when its volume changes). */
     public fun sendVolume(level: Int) {
         val message = RemoteMessage(remote_set_volume_level = RemoteSetVolumeLevel(volume_max = 100, volume_level = level))
+        remoteWriters.forEach { runCatching { it(message) } }
+    }
+
+    /** Pushes the foreground app (package and readable label), as a TV does when the app changes. */
+    public fun sendForegroundApp(packageName: String, label: String = "") {
+        val message =
+            RemoteMessage(
+                remote_ime_key_inject = RemoteImeKeyInject(app_info = RemoteAppInfo(app_package = packageName, label = label)),
+            )
+        remoteWriters.forEach { runCatching { it(message) } }
+    }
+
+    /** Tells every open remote connection that a text field wants input (the TV's on-screen keyboard came up). */
+    public fun sendTextFieldRequest() {
+        val message = RemoteMessage(remote_ime_show_request = RemoteImeShowRequest(remote_text_field_status = RemoteTextFieldStatus()))
         remoteWriters.forEach { runCatching { it(message) } }
     }
 

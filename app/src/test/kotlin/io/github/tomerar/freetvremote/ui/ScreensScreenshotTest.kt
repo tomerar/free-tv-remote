@@ -10,16 +10,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import io.github.tomerar.freetvremote.AppContainer
+import io.github.tomerar.freetvremote.data.SavedTv
 import io.github.tomerar.freetvremote.data.ThemeMode
+import io.github.tomerar.freetvremote.protocol.remote.ConnectionState
+import io.github.tomerar.freetvremote.protocol.remote.TvState
 import io.github.tomerar.freetvremote.ui.screens.DiagnosticsScreen
 import io.github.tomerar.freetvremote.ui.screens.DiscoverScreen
 import io.github.tomerar.freetvremote.ui.screens.PairScreen
 import io.github.tomerar.freetvremote.ui.screens.RemoteScreen
 import io.github.tomerar.freetvremote.ui.screens.SettingsScreen
 import io.github.tomerar.freetvremote.ui.screens.ShortcutsScreen
+import io.github.tomerar.freetvremote.ui.screens.StatusCard
 import io.github.tomerar.freetvremote.ui.screens.TvsScreen
 import io.github.tomerar.freetvremote.ui.theme.FreeTvRemoteTheme
 import kotlinx.coroutines.runBlocking
@@ -68,7 +74,11 @@ class ScreensScreenshotTest {
 
     private fun remote() =
         shoot("screen_remote") {
-            RemoteScreen(onOpenSettings = {}, onAddTv = {}, onManageTvs = {}, onEditShortcuts = {}, onPairAgain = { _, _ -> })
+            RemoteScreen(onOpenSettings = {}, onAddTv = {}, onManageTvs = {}, onEditShortcuts = {}, onPairAgain = {
+                _,
+                _,
+                ->
+            }, onOpenDiagnostics = {})
         }
 
     @Test
@@ -78,7 +88,11 @@ class ScreensScreenshotTest {
     @Config(qualifiers = "he-w411dp-h891dp-xxhdpi")
     fun remoteScreenHebrew() =
         shoot("screen_remote_he") {
-            RemoteScreen(onOpenSettings = {}, onAddTv = {}, onManageTvs = {}, onEditShortcuts = {}, onPairAgain = { _, _ -> })
+            RemoteScreen(onOpenSettings = {}, onAddTv = {}, onManageTvs = {}, onEditShortcuts = {}, onPairAgain = {
+                _,
+                _,
+                ->
+            }, onOpenDiagnostics = {})
         }
 
     @Test
@@ -116,6 +130,49 @@ class ScreensScreenshotTest {
     @Test
     @Config(qualifiers = "he-w411dp-h891dp-xxhdpi")
     fun diagnosticsScreenHebrew() = shoot("screen_diagnostics_he") { DiagnosticsScreen(onBack = {}) }
+
+    private val sampleTv = SavedTv("1", "Living Room", "192.168.1.20", "AA==")
+    private val sampleState =
+        RemoteUiState(
+            activeTv = sampleTv,
+            connection = ConnectionState.Connected,
+            tvState =
+                TvState(
+                    isOn = true,
+                    volumeLevel = 13,
+                    volumeMax = 100,
+                    currentApp = "com.netflix.ninja",
+                    currentAppLabel = "Netflix",
+                    deviceVendor = "TCL",
+                    deviceModel = "65C735",
+                    textFieldActive = true,
+                ),
+            connectedSince = 0L,
+        )
+
+    @Test
+    fun statusCardClosed() =
+        shoot("status_card_closed") {
+            StatusCard(sampleState, {}, { _, _ -> }, {}, {}, now = { 12 * 60_000L })
+        }
+
+    @Test
+    fun statusCardOpen() {
+        compose.setContent {
+            CompositionLocalProvider(LocalAppContainer provides container) {
+                FreeTvRemoteTheme(ThemeMode.DARK, dynamicColor = false) {
+                    Surface(Modifier, color = MaterialTheme.colorScheme.background) {
+                        StatusCard(sampleState, {}, { _, _ -> }, {}, {}, now = { 12 * 60_000L })
+                    }
+                }
+            }
+        }
+        compose.onNodeWithText("Connected · TV on · Volume 13 · Netflix").performClick()
+        compose.waitForIdle()
+        val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
+        val dir = File("build/screenshots").apply { mkdirs() }
+        File(dir, "status_card_open.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
 
     @Test
     fun shortcutsScreen() = shoot("screen_shortcuts") { ShortcutsScreen(onBack = {}) }

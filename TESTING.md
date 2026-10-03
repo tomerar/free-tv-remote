@@ -49,10 +49,10 @@ Use the IDs in your results file. "Record" means: write down what you actually o
 ### A. Discovery and manual address
 | ID | Steps | Expected / record |
 | --- | --- | --- |
-| A1 | Fresh install, open the app with no TV saved | Opens on "Choose your TV" |
+| A1 | Fresh install, open the app with no TV saved | Opens on "Choose your TV" with a "Search for TVs" button; nothing is searched until it is tapped |
 | A2 | Android 17+ only: permission card, tap Allow; then repeat after denying once | System dialog appears; after a denial "Open app settings" works and granting there starts the search |
-| A3 | Wait for discovery | The TV is listed within about 10 s with a sensible name and IP. Record the time and the name shown |
-| A4 | "Search again" | List refreshes without duplicates |
+| A3 | Tap "Search for TVs" and wait | A progress bar runs for 15 s; the TV is listed within that time with a sensible name and IP, and the search stops by itself. Record the time and the name shown |
+| A4 | "Search again" | List refreshes without duplicates. With the TV off: "No TVs found" with hints and the manual IP entry opened |
 | A5 | Manual entry: invalid text; a wrong IP; the TV's real IP | Invalid input is rejected with a message; wrong IP leads to a clear "could not reach" state; real IP proceeds to pairing |
 | A6 | Phone Wi-Fi off while searching | A clear message, no crash |
 
@@ -84,6 +84,7 @@ Use the IDs in your results file. "Record" means: write down what you actually o
 | D4 | Phone volume buttons on the remote screen | Control the TV, hold repeats; phone volume does not change |
 | D5 | Switch the setting off; leave the remote screen | Phone buttons control the phone again |
 | D6 | Change TV volume with the TV's own remote | The status card volume text follows, or record that the TV does not report it (e.g. external audio/CEC) |
+| D7 | Tap the status card to open it, then close it | Closed: one line (connection, TV on/off, volume, app). Open: model, volume bar, app, address, connection time. Record which facts this TV does **not** send (model, app name, volume) and what the app name shows for the home screen and for a streaming app |
 
 ### E. Text entry
 Focus a TV text field first (for example the search box of a video app).
@@ -97,6 +98,7 @@ Focus a TV text field first (for example the search box of a video app).
 | E5 | Change to a different TV text field, send again | Goes to the newly focused field |
 | E6 | Backspace and Enter buttons | Act in the TV field |
 | E7 | Turn phone Wi-Fi off, press Send | Message says nothing was sent and the draft is still in the box; after reconnecting, Send works |
+| E8 | Focus a text field on the TV, open the status card | Record whether "The TV is asking for text" and the Type button appear, and whether they go away after the TV's keyboard is closed (known: they may stay, see docs/KNOWN_LIMITATIONS.md) |
 
 ### F. App shortcuts
 | ID | Steps | Expected / record |

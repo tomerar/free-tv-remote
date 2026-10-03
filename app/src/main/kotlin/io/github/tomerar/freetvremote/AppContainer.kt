@@ -59,7 +59,7 @@ class AppContainer(
         RemoteController(
             appScope,
             tvRepository,
-            DefaultSessionFactory(identityProvider),
+            DefaultSessionFactory(identityProvider, log = { eventLog.log("Connection", it) }),
             log = { eventLog.log("Connection", it) },
         )
 }

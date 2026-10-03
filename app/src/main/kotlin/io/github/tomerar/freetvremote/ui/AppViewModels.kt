@@ -43,6 +43,7 @@ data class RemoteUiState(
     val tvs: List<SavedTv> = emptyList(),
     val connection: ConnectionState = ConnectionState.Idle,
     val tvState: TvState = TvState(),
+    val connectedSince: Long? = null,
     val shortcuts: List<AppShortcut> = emptyList(),
     val settings: AppSettings = AppSettings(),
 )
@@ -66,10 +67,10 @@ class RemoteViewModel(
             controller.activeTv,
             container.tvRepository.tvs,
             controller.connection,
-            controller.tvState,
+            combine(controller.tvState, controller.connectedSince) { tvState, since -> tvState to since },
             combine(container.shortcutsRepository.enabled, container.settingsRepository.settings) { a, b -> a to b },
-        ) { active, tvs, connection, tvState, rest ->
-            RemoteUiState(active, tvs, connection, tvState, rest.first, rest.second)
+        ) { active, tvs, connection, tv, rest ->
+            RemoteUiState(active, tvs, connection, tv.first, tv.second, rest.first, rest.second)
         }.state(viewModelScope, RemoteUiState())
 
     val volumeKeys get() = container.volumeKeys

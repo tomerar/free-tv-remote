@@ -1,0 +1,1 @@
+The connection card is now compact: connection, TV power, volume and app on one line. Tap it for details (model, volume bar, address, connection time). The app name now comes from the TV itself when it sends one.

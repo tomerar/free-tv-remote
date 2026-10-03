@@ -22,16 +22,31 @@
     <string name="status_no_tv">No TV selected</string>
     <string name="action_reconnect">Reconnect</string>
     <string name="action_pair_again">Pair again</string>
-    <string name="tv_power_on">TV is on</string>
-    <string name="tv_power_off">TV is off or in standby</string>
-    <string name="tv_volume">Volume %1$d of %2$d</string>
     <string name="tv_volume_muted">Muted</string>
     <string name="tv_app_home">Home screen</string>
     <string name="tv_app_netflix">Netflix</string>
     <string name="tv_app_youtube">YouTube</string>
     <string name="tv_app_disney">Disney+</string>
     <string name="tv_app_prime">Prime Video</string>
-    <string name="tv_current_app">Now showing: %1$s</string>
+    <string name="tv_power_short_on">TV on</string>
+    <string name="tv_power_short_off">TV off</string>
+    <string name="tv_volume_short">Volume %1$d</string>
+    <string name="status_expand">Show details</string>
+    <string name="status_collapse">Hide details</string>
+    <string name="status_state_expanded">Expanded</string>
+    <string name="status_state_collapsed">Collapsed</string>
+    <string name="status_detail_tv">TV</string>
+    <string name="status_detail_volume">Volume</string>
+    <string name="status_detail_app">App</string>
+    <string name="status_detail_address">Address</string>
+    <string name="status_detail_connected">Connected</string>
+    <string name="status_connected_just_now">just now</string>
+    <plurals name="status_connected_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <string name="status_text_field_hint">The TV is asking for text.</string>
+    <string name="status_text_field_action">Type</string>
 
     <!-- Remote screen -->
     <string name="remote_dpad">Directional pad</string>

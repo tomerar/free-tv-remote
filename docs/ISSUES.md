@@ -12,10 +12,10 @@ the new language) and the screenshots in `app/build/screenshots` look right.
 Add presets (e.g. Max, Hulu, YouTube Music, Crunchyroll, Twitch) to `AppShortcut.defaults`, disabled by default,
 with their deep links. **Done when** the links are verified on a real TV and a test checks that ids are unique.
 
-## 3. Show friendly app names for "Now showing"  [good first issue]
-The status card shows the raw package name (`com.netflix.ninja`). Add a small map for common packages
-(Netflix, YouTube, Disney+, Prime Video, launcher...) and fall back to the package. Put the logic in a pure
-function with unit tests.
+## 3. Show friendly app names for "Now showing"  [done in v0.1.7]
+The status card now shows the readable name the TV sends (`label`), falls back to a small map of known packages
+(`friendlyAppName`) and, in the opened details only, to the package id. Logic and tests: `AppName.kt`,
+`StatusFormatTest`. Remaining idea: extend the map with more apps once real TVs report their labels.
 
 ## 4. Extract and test the mDNS result mapping  [good first issue, testing]
 `NsdTvDiscovery` mixes Android callbacks and mapping of `NsdServiceInfo` to `DiscoveredTv`. Extract the pure parts
