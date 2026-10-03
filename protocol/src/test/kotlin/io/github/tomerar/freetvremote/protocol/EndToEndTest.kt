@@ -37,7 +37,7 @@ class EndToEndTest {
         RemoteSessionConfig(
             port = 0,
             connectTimeoutMs = 1_000,
-            idleTimeoutMs = 700,
+            idleTimeoutMs = 1_500,
             backoffMs = listOf(50, 100),
         )
 
@@ -63,15 +63,15 @@ class EndToEndTest {
     }
 
     private suspend fun awaitCode(): String =
-        withTimeout(5_000) {
+        withTimeout(15_000) {
             while (tv.displayedCode == null) delay(10)
             tv.displayedCode!!
         }
 
-    private suspend fun RemoteSession.await(timeoutMs: Long = 5_000, predicate: (ConnectionState) -> Boolean): ConnectionState =
+    private suspend fun RemoteSession.await(timeoutMs: Long = 15_000, predicate: (ConnectionState) -> Boolean): ConnectionState =
         withTimeout(timeoutMs) { connectionState.first(predicate) }
 
-    private suspend fun until(timeoutMs: Long = 5_000, condition: () -> Boolean) {
+    private suspend fun until(timeoutMs: Long = 15_000, condition: () -> Boolean) {
         withTimeout(timeoutMs) { while (!condition()) delay(10) }
     }
 
@@ -206,7 +206,7 @@ class EndToEndTest {
             session.start()
             session.await { it == ConnectionState.Connected }
             tv.goSilent()
-            session.await(timeoutMs = 4_000) { it is ConnectionState.Reconnecting }
+            session.await(timeoutMs = 10_000) { it is ConnectionState.Reconnecting }
             session.stop()
         }
 

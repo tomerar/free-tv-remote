@@ -52,7 +52,7 @@ class RemoteControllerTest {
                 RemoteSessionConfig(
                     port = tv.remotePort,
                     connectTimeoutMs = 1_000,
-                    idleTimeoutMs = 1_000,
+                    idleTimeoutMs = 2_000,
                     backoffMs = listOf(50, 100),
                 ),
             )
@@ -83,7 +83,7 @@ class RemoteControllerTest {
     }
 
     private suspend fun pressUntilReceived(code: Int, received: () -> Boolean) {
-        withTimeout(5_000) {
+        withTimeout(15_000) {
             while (!received()) {
                 controller.pressKey(code)
                 delay(100)

@@ -29,6 +29,7 @@ import okio.ByteString.Companion.toByteString
 import java.io.Closeable
 import java.io.IOException
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -100,10 +101,10 @@ public class FakeTv(
                 override fun verify(leaf: X509Certificate) = Unit
             }
         val context = TlsSupport.sslContext(identity, trust)
-        val server =
-            context.serverSocketFactory
-                .createServerSocket(port, 0, InetAddress.getLoopbackAddress()) as SSLServerSocket
+        // reuseAddress must be set before binding, or re-opening the same port can fail on busy machines.
+        val server = context.serverSocketFactory.createServerSocket() as SSLServerSocket
         server.reuseAddress = true
+        server.bind(InetSocketAddress(InetAddress.getLoopbackAddress(), port), 0)
         server.needClientAuth = true
         return server
     }

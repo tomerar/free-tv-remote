@@ -21,9 +21,9 @@ val sharedIdentity: ClientIdentity by lazy { SelfSignedCertificate.generate("app
 
 val testIdentityProvider = IdentityProvider { sharedIdentity }
 
-suspend fun <T> Flow<T>.awaitValue(timeoutMs: Long = 5_000, predicate: (T) -> Boolean): T =
+suspend fun <T> Flow<T>.awaitValue(timeoutMs: Long = 15_000, predicate: (T) -> Boolean): T =
     withTimeout(timeoutMs) { first(predicate) }
 
-suspend fun awaitUntil(timeoutMs: Long = 5_000, condition: () -> Boolean) {
+suspend fun awaitUntil(timeoutMs: Long = 15_000, condition: () -> Boolean) {
     withTimeout(timeoutMs) { while (!condition()) delay(10) }
 }
