@@ -65,6 +65,15 @@ class TvStateReportingTest {
         withTimeout(WAIT_MS) { connectionState.first { it == ConnectionState.Connected } }
     }
 
+    /**
+     * The fake TV announces its launcher right after the handshake. Waiting for that message first makes the
+     * tests deterministic: otherwise it could arrive after (and replace) what a test just sent.
+     */
+    private suspend fun RemoteSession.awaitConnectedAndSettled() {
+        awaitConnected()
+        awaitState { it.currentApp == "com.fake.launcher" }
+    }
+
     private suspend fun RemoteSession.awaitState(predicate: (TvState) -> Boolean) {
         withTimeout(WAIT_MS) { tvState.first(predicate) }
     }
@@ -74,7 +83,7 @@ class TvStateReportingTest {
         runBlocking {
             val s = session()
             s.start()
-            s.awaitConnected()
+            s.awaitConnectedAndSettled()
             tv.sendForegroundApp("com.netflix.ninja", "Netflix")
             s.awaitState { it.currentApp == "com.netflix.ninja" }
             assertEquals("Netflix", s.tvState.value.currentAppLabel)
@@ -86,7 +95,7 @@ class TvStateReportingTest {
         runBlocking {
             val s = session()
             s.start()
-            s.awaitConnected()
+            s.awaitConnectedAndSettled()
             tv.sendForegroundApp("com.netflix.ninja", "Netflix")
             s.awaitState { it.currentAppLabel == "Netflix" }
             tv.sendForegroundApp("com.vendor.player")
@@ -100,7 +109,7 @@ class TvStateReportingTest {
         runBlocking {
             val s = session()
             s.start()
-            s.awaitConnected()
+            s.awaitConnectedAndSettled()
             assertFalse(s.tvState.value.textFieldActive)
             tv.sendTextFieldRequest()
             s.awaitState { it.textFieldActive }
@@ -115,12 +124,12 @@ class TvStateReportingTest {
         runBlocking {
             val s = session()
             s.start()
-            s.awaitConnected()
+            s.awaitConnectedAndSettled()
             tv.sendTextFieldRequest()
             s.awaitState { it.textFieldActive }
             s.stop()
             s.start()
-            s.awaitConnected()
+            s.awaitConnectedAndSettled()
             assertFalse(s.tvState.value.textFieldActive)
             s.stop()
         }
@@ -132,7 +141,7 @@ class TvStateReportingTest {
             val s = session { now }
             assertNull(s.connectedSince.value)
             s.start()
-            s.awaitConnected()
+            s.awaitConnectedAndSettled()
             assertEquals(1_000L, s.connectedSince.value)
             now = 9_000L
             delay(150) // a ping must not restart the clock
@@ -146,7 +155,7 @@ class TvStateReportingTest {
         runBlocking {
             val s = session()
             s.start()
-            s.awaitConnected()
+            s.awaitConnectedAndSettled()
             tv.sendForegroundApp("com.secret.app", "Secret Label")
             tv.sendTextFieldRequest()
             s.awaitState { it.textFieldActive && it.currentAppLabel == "Secret Label" }
