@@ -300,6 +300,11 @@ public class FakeTv(
 
     // --- Test controls ---------------------------------------------------------------------
 
+    /** Clears the displayed code so a test can wait for the next pairing's code. */
+    public fun displayedCodeReset() {
+        displayedCode = null
+    }
+
     /** Forget a previously paired client (as if the user removed it in the TV's settings). */
     public fun unpairAll() {
         pairedPins.clear()
