@@ -8,6 +8,7 @@ import io.github.tomerar.freetvremote.protocol.testing.FakeTv
 import io.github.tomerar.freetvremote.protocol.tls.publicKeyPin
 import io.github.tomerar.freetvremote.testDataStore
 import io.github.tomerar.freetvremote.testIdentityProvider
+import io.github.tomerar.freetvremote.warmUpTestIdentity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,6 +35,7 @@ class PairingCoordinatorTest {
 
     @Before
     fun setUp() {
+        warmUpTestIdentity()
         tv = FakeTv()
         repo = TvRepository(testDataStore(scope, tmp.root))
         coordinator =

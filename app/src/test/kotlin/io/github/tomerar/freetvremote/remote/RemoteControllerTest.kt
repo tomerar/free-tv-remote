@@ -14,6 +14,7 @@ import io.github.tomerar.freetvremote.protocol.tls.publicKeyPin
 import io.github.tomerar.freetvremote.sharedIdentity
 import io.github.tomerar.freetvremote.testDataStore
 import io.github.tomerar.freetvremote.testIdentityProvider
+import io.github.tomerar.freetvremote.warmUpTestIdentity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -60,6 +61,7 @@ class RemoteControllerTest {
 
     @Before
     fun setUp() {
+        warmUpTestIdentity()
         repo = TvRepository(testDataStore(scope, tmp.root))
         controller = RemoteController(scope, repo, fastSessions, backgroundGraceMs = 300, quickConnectTimeoutMs = 3_000)
     }

@@ -14,6 +14,7 @@ import io.github.tomerar.freetvremote.protocol.remote.RemoteSessionConfig
 import io.github.tomerar.freetvremote.protocol.testing.FakeTv
 import io.github.tomerar.freetvremote.testDataStore
 import io.github.tomerar.freetvremote.testIdentityProvider
+import io.github.tomerar.freetvremote.warmUpTestIdentity
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +51,7 @@ class FailureHandlingTest {
 
     @Before
     fun setUp() {
+        warmUpTestIdentity()
         tv = FakeTv(pingIntervalMs = 100)
         repo = TvRepository(testDataStore(scope, tmp.root))
     }

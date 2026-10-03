@@ -19,6 +19,11 @@ fun testDataStore(scope: CoroutineScope, dir: File, name: String = "test"): Data
 /** One RSA key pair per test run: generating 2048-bit keys is the slow part. */
 val sharedIdentity: ClientIdentity by lazy { SelfSignedCertificate.generate("app-test") }
 
+/** Generates the shared key now, so its slow CPU-bound creation never counts against a test's timeout on a busy CI runner. */
+fun warmUpTestIdentity() {
+    check(sharedIdentity.certificate.encoded.isNotEmpty())
+}
+
 val testIdentityProvider = IdentityProvider { sharedIdentity }
 
 suspend fun <T> Flow<T>.awaitValue(timeoutMs: Long = 15_000, predicate: (T) -> Boolean): T =
