@@ -21,17 +21,13 @@ class NsdTvDiscovery(
 
     override fun discover(): Flow<List<DiscoveredTv>> =
         callbackFlow {
-            val found = ConcurrentHashMap<String, DiscoveredTv>()
-
-            fun publish() {
-                trySend(found.values.sortedBy { it.name.lowercase() })
-            }
-
+            // One book per scan: results of an earlier scan can never leak into this one.
+            val book = ServiceBook { trySend(it) }
             val resolver =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    ModernResolver(nsd, ContextCompat.getMainExecutor(appContext), found, ::publish)
+                    ModernResolver(nsd, ContextCompat.getMainExecutor(appContext), book)
                 } else {
-                    LegacyResolver(nsd, found, ::publish)
+                    LegacyResolver(nsd, book)
                 }
 
             val listener =
@@ -44,8 +40,6 @@ class NsdTvDiscovery(
 
                     override fun onServiceLost(serviceInfo: NsdServiceInfo) {
                         resolver.lost(serviceInfo)
-                        found.remove(serviceInfo.serviceName)
-                        publish()
                     }
 
                     override fun onDiscoveryStopped(serviceType: String) = Unit
@@ -82,92 +76,78 @@ class NsdTvDiscovery(
     private class ModernResolver(
         private val nsd: NsdManager,
         private val executor: Executor,
-        private val found: MutableMap<String, DiscoveredTv>,
-        private val publish: () -> Unit,
+        private val book: ServiceBook,
     ) : Resolver {
         private val callbacks = ConcurrentHashMap<String, NsdManager.ServiceInfoCallback>()
 
         override fun resolve(info: NsdServiceInfo) {
-            if (callbacks.containsKey(info.serviceName)) return
+            val name = info.serviceName
+            if (callbacks.containsKey(name)) return
+            val token = book.found(name)
             val callback =
                 object : NsdManager.ServiceInfoCallback {
                     override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) {
-                        callbacks.remove(info.serviceName)
+                        callbacks.remove(name, this)
                     }
 
+                    // A callback that was unregistered or replaced can still deliver; the token rejects it.
                     override fun onServiceUpdated(serviceInfo: NsdServiceInfo) {
-                        record(serviceInfo, found, publish)
+                        val host = hostOf(serviceInfo) ?: return
+                        book.resolved(name, token, DiscoveredTv(name, host, serviceInfo.port))
                     }
 
                     override fun onServiceLost() {
-                        found.remove(info.serviceName)
-                        publish()
+                        book.lostIfCurrent(name, token)
                     }
 
                     override fun onServiceInfoCallbackUnregistered() = Unit
                 }
-            callbacks[info.serviceName] = callback
+            callbacks[name] = callback
             nsd.registerServiceInfoCallback(info, executor, callback)
         }
 
         override fun lost(info: NsdServiceInfo) {
+            book.lost(info.serviceName)
             callbacks.remove(info.serviceName)?.let { runCatching { nsd.unregisterServiceInfoCallback(it) } }
         }
 
         override fun close() {
+            book.close()
             callbacks.values.forEach { runCatching { nsd.unregisterServiceInfoCallback(it) } }
             callbacks.clear()
         }
     }
 
-    /** API 26-33: `resolveService` allows only one resolution at a time, so requests are queued. */
+    /** API 26-33: see [LegacyResolveQueue]. */
     @Suppress("DEPRECATION")
     private class LegacyResolver(
-        private val nsd: NsdManager,
-        private val found: MutableMap<String, DiscoveredTv>,
-        private val publish: () -> Unit,
+        nsd: NsdManager,
+        book: ServiceBook,
     ) : Resolver {
-        private val queue = ArrayDeque<NsdServiceInfo>()
-        private var busy = false
-        private var closed = false
+        private val queue =
+            LegacyResolveQueue<NsdServiceInfo>(book) { info, callback ->
+                nsd.resolveService(
+                    info,
+                    object : NsdManager.ResolveListener {
+                        override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) = callback.onFailed()
 
-        @Synchronized
-        override fun resolve(info: NsdServiceInfo) {
-            if (closed) return
-            queue.addLast(info)
-            next()
-        }
+                        override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
+                            val host = hostOf(serviceInfo)
+                            if (host == null) {
+                                callback.onFailed()
+                            } else {
+                                callback.onResolved(DiscoveredTv(serviceInfo.serviceName, host, serviceInfo.port))
+                            }
+                        }
+                    },
+                )
+            }
 
-        @Synchronized
-        private fun next() {
-            if (busy || closed) return
-            val info = queue.removeFirstOrNull() ?: return
-            busy = true
-            nsd.resolveService(
-                info,
-                object : NsdManager.ResolveListener {
-                    override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) = done()
+        override fun resolve(info: NsdServiceInfo) = queue.enqueue(info.serviceName, info)
 
-                    override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-                        record(serviceInfo, found, publish)
-                        done()
-                    }
+        override fun lost(info: NsdServiceInfo) = queue.lost(info.serviceName)
 
-                    private fun done() {
-                        synchronized(this@LegacyResolver) { busy = false }
-                        next()
-                    }
-                },
-            )
-        }
-
-        override fun lost(info: NsdServiceInfo) = Unit
-
-        @Synchronized
-        override fun close() {
-            closed = true
-            queue.clear()
-        }
+        override fun close() = queue.close()
     }
 
     companion object {
@@ -181,11 +161,5 @@ class NsdTvDiscovery(
             } else {
                 info.host?.hostAddress
             }
-
-        private fun record(info: NsdServiceInfo, found: MutableMap<String, DiscoveredTv>, publish: () -> Unit) {
-            val host = hostOf(info) ?: return
-            found[info.serviceName] = DiscoveredTv(name = info.serviceName, host = host, port = info.port)
-            publish()
-        }
     }
 }
