@@ -8,6 +8,7 @@ import io.github.tomerar.freetvremote.data.AppSettings
 import io.github.tomerar.freetvremote.data.AppShortcut
 import io.github.tomerar.freetvremote.data.SavedTv
 import io.github.tomerar.freetvremote.data.ThemeMode
+import io.github.tomerar.freetvremote.diagnostics.maskHost
 import io.github.tomerar.freetvremote.discovery.DiscoveredTv
 import io.github.tomerar.freetvremote.discovery.TvDiscovery
 import io.github.tomerar.freetvremote.protocol.remote.ConnectionState
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -117,11 +119,13 @@ class DiscoverViewModel(
     private val savedTvs: Flow<List<SavedTv>>,
     private val scanDurationMs: Long = SCAN_DURATION_MS,
     private val log: (String) -> Unit = {},
+    private val selectTv: suspend (String) -> Unit = {},
 ) : ViewModel() {
     constructor(container: AppContainer) : this(
         container.discovery,
         container.tvRepository.tvs,
         log = { container.eventLog.log("Discovery", it) },
+        selectTv = container.remoteController::selectTv,
     )
 
     private val scan = MutableStateFlow(DiscoverUiState())
@@ -164,6 +168,25 @@ class DiscoverViewModel(
                 log(if (failed) "search failed" else "search finished: ${scan.value.devices.size} TV(s) found")
                 scan.update { it.copy(phase = if (failed) ScanPhase.FAILED else ScanPhase.DONE, progress = 1f) }
             }
+    }
+
+    /**
+     * The user chose the TV at [host]. A TV that is already paired is simply selected and the remote opens
+     * ([onOpenRemote]); pairing it a second time would only ask for a code the app does not need. Anything else
+     * goes on to pairing ([onPair]).
+     */
+    fun choose(host: String, name: String, onPair: (host: String, name: String) -> Unit, onOpenRemote: () -> Unit) {
+        viewModelScope.launch {
+            val saved = savedTvs.first().firstOrNull { it.host == host }
+            if (saved == null) {
+                onPair(host, name)
+            } else {
+                stopScan()
+                selectTv(saved.id)
+                log("selected the already paired TV at ${maskHost(host)}")
+                onOpenRemote()
+            }
+        }
     }
 
     /** Cancels a running search (leaving the screen, choosing a TV). Finished results are kept. */

@@ -19,8 +19,8 @@ import io.github.tomerar.freetvremote.ui.screens.SettingsScreen
 import io.github.tomerar.freetvremote.ui.screens.ShortcutsScreen
 import io.github.tomerar.freetvremote.ui.screens.TvsScreen
 
-/** Replaces the whole back stack (onboarding or "add a TV") with the remote. */
-internal fun NavController.showRemoteAfterPairing() {
+/** Replaces the whole back stack (onboarding, "add a TV", pairing) with the remote. */
+internal fun NavController.showRemote() {
     navigate(Routes.REMOTE) {
         popUpTo(graph.id) { inclusive = true }
     }
@@ -57,6 +57,7 @@ fun AppNav(startOnboarding: Boolean, navController: NavHostController = remember
             DiscoverScreen(
                 onBack = if (navController.previousBackStackEntry != null) ({ navController.popBackStack() }) else null,
                 onPair = { host, name -> navController.navigate(Routes.pair(host, name)) },
+                onOpenRemote = { navController.showRemote() },
             )
         }
         composable(
@@ -69,7 +70,7 @@ fun AppNav(startOnboarding: Boolean, navController: NavHostController = remember
                 host = host,
                 name = name,
                 onBack = { navController.popBackStack() },
-                onPaired = { navController.showRemoteAfterPairing() },
+                onPaired = { navController.showRemote() },
             )
         }
         composable(Routes.SETTINGS) {

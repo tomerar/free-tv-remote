@@ -72,7 +72,7 @@ private const val MAX_OCTET = 255
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -> Unit) {
+fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -> Unit, onOpenRemote: () -> Unit) {
     val container = LocalAppContainer.current
     val vm: DiscoverViewModel = viewModel(factory = simpleFactory { DiscoverViewModel(container) })
     val state by vm.uiState.collectAsStateWithLifecycle()
@@ -130,10 +130,7 @@ fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -
                     DeviceRow(
                         device,
                         paired = device.host in state.pairedHosts,
-                        onClick = {
-                            vm.stopScan()
-                            onPair(device.host, device.name)
-                        },
+                        onClick = { vm.choose(device.host, device.name, onPair, onOpenRemote) },
                     )
                 }
                 if (state.phase == ScanPhase.DONE || state.phase == ScanPhase.FAILED) {
@@ -146,7 +143,7 @@ fun DiscoverScreen(onBack: (() -> Unit)?, onPair: (host: String, name: String) -
             }
             item {
                 val nothingFound = (state.phase == ScanPhase.DONE || state.phase == ScanPhase.FAILED) && state.devices.isEmpty()
-                ManualEntry(forceOpen = nothingFound, onPair = { host -> onPair(host, defaultName) })
+                ManualEntry(forceOpen = nothingFound, onPair = { host -> vm.choose(host, defaultName, onPair, onOpenRemote) })
             }
         }
     }

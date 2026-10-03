@@ -58,6 +58,7 @@ Use the IDs in your results file. "Record" means: write down what you actually o
 | A4 | "Search again" | List refreshes without duplicates. With the TV off: "No TVs found" with hints and the manual IP entry opened |
 | A5 | Manual entry: invalid text; a wrong IP; the TV's real IP | Invalid input is rejected with a message; wrong IP leads to a clear "could not reach" state; real IP proceeds to pairing |
 | A6 | Phone Wi-Fi off while searching | A clear message, no crash |
+| A7 | With a TV already paired, tap it (marked "Paired") in the search results, and also type its IP address by hand | The remote opens at once and that TV becomes the active one; no pairing code is asked for |
 
 ### B. Pairing, wrong code, re-pairing
 | ID | Steps | Expected / record |

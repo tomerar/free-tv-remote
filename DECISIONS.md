@@ -140,6 +140,12 @@ comes from the TV's own `label` when sent, else a small package map, else (open 
 it is derived in pure functions (`AppName.kt`) with unit tests; the TV's text-field request is treated as best
 effort (see docs/KNOWN_LIMITATIONS.md).
 
+**D29. Choosing a TV that is already paired selects it and opens the remote.** Matching is by the saved address.
+Pairing again is offered only through the connection card (*Pair again*) when the TV reports the phone is no longer
+paired. Rationale: re-pairing a known TV asked for a code the app did not need and looked like a bug
+(`DiscoverViewModel.choose`, `DiscoverViewModelTest`). Known gap: a paired TV whose IP address changed is not
+recognised and is paired as a new one (docs/KNOWN_LIMITATIONS.md).
+
 ## Testing
 
 **D24. Three layers.** (1) Pure JVM unit tests for framing, protobuf bytes, secret, certificates and identity store.

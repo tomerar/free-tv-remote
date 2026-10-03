@@ -1,0 +1,1 @@
+Fix: choosing a TV that is already paired (in the search results or by its address) now opens the remote right away instead of asking for the pairing code again.

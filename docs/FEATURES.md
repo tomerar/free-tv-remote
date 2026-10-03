@@ -7,6 +7,8 @@
   are found; tapping one stops the search.
 - **Clear outcomes.** If nothing is found the app says so, lists what to check (same Wi-Fi, TV on, permission), and
   opens the manual entry. Manual entry accepts an IPv4 address or a host name.
+- **Already paired? No second pairing.** Tapping a TV marked *Paired* (or typing its address) selects it and opens the
+  remote right away. Pairing again is offered only when the connection reports it is needed (*Pair again*).
 - **Pair once.** The TV shows a 6-character code; type it in. A mistyped code lets you try again without starting
   over. The TV's public key is pinned afterwards, so another device cannot impersonate it.
 - **Local-network permission.** On Android 17 and newer the app asks for access to devices on the local network and

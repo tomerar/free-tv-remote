@@ -33,7 +33,7 @@ class PairingNavigationTest {
             }
         }
         compose.runOnIdle { before(nav) }
-        compose.runOnIdle { nav.showRemoteAfterPairing() }
+        compose.runOnIdle { nav.showRemote() }
         compose.waitForIdle()
         compose.onNodeWithText("remote screen").assertExists()
         assertEquals(Routes.REMOTE, nav.currentBackStackEntry?.destination?.route)

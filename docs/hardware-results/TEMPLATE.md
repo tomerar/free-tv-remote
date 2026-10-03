@@ -25,6 +25,7 @@
 | A4 | not tested | |
 | A5 | not tested | |
 | A6 | not tested | |
+| A7 | not tested | |
 | B1 | not tested | |
 | B2 | not tested | |
 | B3 | not tested | |
