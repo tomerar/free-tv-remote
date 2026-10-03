@@ -14,9 +14,15 @@ apksigner="${APKSIGNER:-$(ls -d "${ANDROID_HOME:?}"/build-tools/*/apksigner | ta
 
 "$apksigner" verify --verbose "$apk" > /dev/null
 certs="$("$apksigner" verify --print-certs "$apk")"
-subject="$(printf '%s\n' "$certs" | sed -n 's/^Signer #1 certificate DN: //p' | head -1)"
-sha="$(printf '%s\n' "$certs" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | head -1 | tr -d ': ' | tr 'A-F' 'a-f')"
-[ -n "$sha" ] || { echo "::error::could not read the signer certificate"; exit 1; }
+# Tolerant of apksigner output variations ("Signer #1 ..." or "Signer (minSdkVersion=..) ..."), taking the first signer.
+subject="$(printf '%s\n' "$certs" | tr -d '\r' | awk -F'certificate DN: ' '/^Signer.*certificate DN: / { print $2; exit }')"
+sha="$(printf '%s\n' "$certs" | tr -d '\r' | awk -F'certificate SHA-256 digest: ' '/^Signer.*certificate SHA-256 digest: / { print $2; exit }' | tr -d ': ' | tr 'A-F' 'a-f')"
+if [ -z "$sha" ]; then
+  echo "::error::could not read the signer certificate"
+  echo "apksigner output (public certificate data only):"
+  printf '%s\n' "$certs" | grep -v '^Picked up' || true
+  exit 1
+fi
 echo "Signer: $subject"
 echo "Signer certificate SHA-256: $sha"
 
