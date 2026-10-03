@@ -6,7 +6,7 @@ body:
     id: tv-model
     attributes:
       label: TV / streaming device model
-      placeholder: "NVIDIA Shield TV (2019), TCL 55C735 ..."
+      placeholder: "Manufacturer, model, year"
     validations:
       required: true
   - type: input

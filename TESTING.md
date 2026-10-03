@@ -1,12 +1,12 @@
 # Manual test checklist (real devices)
 
 Automated tests run against a simulated TV only. **This checklist is what proves the app works on real
-hardware.** Please run it on the NVIDIA Shield and the TCL Google TV and report results with the *Device
-compatibility report* issue template.
+hardware.** Run it on any Android TV / Google TV device you own and report the results with the *Device
+compatibility report* issue template, so the compatibility table in the README can grow.
 
 Record first:
 
-| | Shield | TCL |
+| | Device A | Device B (optional) |
 | --- | --- | --- |
 | TV model | | |
 | Android TV / Google TV version | | |

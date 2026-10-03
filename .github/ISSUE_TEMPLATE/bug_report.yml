@@ -13,7 +13,7 @@ body:
     id: tv-model
     attributes:
       label: TV model
-      description: Manufacturer and model, e.g. "NVIDIA Shield TV Pro 2019" or "TCL 55C735".
+      description: Manufacturer and model, manufacturer, model and year.
     validations:
       required: true
   - type: input
