@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package io.github.tomerar.freetvremote.protocol.proto;
+
+option java_package = "io.github.tomerar.freetvremote.protocol.proto";
+
+// Android TV Remote v2 control messages (port 6466). Written from the
+// publicly documented wire structure of the protocol. Field names that are
+// not understood are kept neutral on purpose.
+
+message RemoteMessage {
+  RemoteConfigure remote_configure = 1;
+  RemoteSetActive remote_set_active = 2;
+  RemoteError remote_error = 3;
+  RemotePingRequest remote_ping_request = 8;
+  RemotePingResponse remote_ping_response = 9;
+  RemoteKeyInject remote_key_inject = 10;
+  RemoteImeKeyInject remote_ime_key_inject = 20;
+  RemoteImeBatchEdit remote_ime_batch_edit = 21;
+  RemoteImeShowRequest remote_ime_show_request = 22;
+  RemoteStart remote_start = 40;
+  RemoteSetVolumeLevel remote_set_volume_level = 50;
+  RemoteAppLinkLaunchRequest remote_app_link_launch_request = 90;
+}
+
+message RemoteConfigure {
+  int32 features = 1;
+  RemoteDeviceInfo device_info = 2;
+}
+
+message RemoteDeviceInfo {
+  string model = 1;
+  string vendor = 2;
+  int32 unknown1 = 3;
+  string unknown2 = 4;
+  string package_name = 5;
+  string app_version = 6;
+}
+
+message RemoteSetActive {
+  int32 active = 1;
+}
+
+message RemoteError {
+  bool value = 1;
+  RemoteMessage message = 2;
+}
+
+message RemotePingRequest {
+  int32 val1 = 1;
+  int32 val2 = 2;
+}
+
+message RemotePingResponse {
+  int32 val1 = 1;
+}
+
+enum RemoteDirection {
+  UNKNOWN_DIRECTION = 0;
+  START_LONG = 1;
+  END_LONG = 2;
+  SHORT = 3;
+}
+
+message RemoteKeyInject {
+  int32 key_code = 1;
+  RemoteDirection direction = 2;
+}
+
+message RemoteAppInfo {
+  int32 counter = 1;
+  int32 int2 = 2;
+  int32 int3 = 3;
+  string field4 = 4;
+  int32 int7 = 7;
+  int32 int8 = 8;
+  string label = 10;
+  string app_package = 12;
+  int32 int13 = 13;
+}
+
+message RemoteTextFieldStatus {
+  int32 counter_field = 1;
+  string value = 2;
+  int32 start = 3;
+  int32 end = 4;
+  int32 int5 = 5;
+  string label = 6;
+}
+
+message RemoteImeKeyInject {
+  RemoteAppInfo app_info = 1;
+  RemoteTextFieldStatus text_field_status = 2;
+}
+
+message RemoteImeObject {
+  int32 start = 1;
+  int32 end = 2;
+  string value = 3;
+}
+
+message RemoteEditInfo {
+  int32 insert = 1;
+  RemoteImeObject text_field_status = 2;
+}
+
+message RemoteImeBatchEdit {
+  int32 ime_counter = 1;
+  int32 field_counter = 2;
+  repeated RemoteEditInfo edit_info = 3;
+}
+
+message RemoteImeShowRequest {
+  RemoteTextFieldStatus remote_text_field_status = 2;
+}
+
+message RemoteStart {
+  bool started = 1;
+}
+
+message RemoteSetVolumeLevel {
+  int32 unknown1 = 1;
+  int32 unknown2 = 2;
+  string player_model = 3;
+  int32 unknown4 = 4;
+  int32 unknown5 = 5;
+  int32 volume_max = 6;
+  int32 volume_level = 7;
+  bool volume_muted = 8;
+}
+
+message RemoteAppLinkLaunchRequest {
+  string app_link = 1;
+}
