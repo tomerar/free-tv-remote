@@ -1,0 +1,1 @@
+Fix: the app could close right after pairing a TV. Network connections are now always closed off the main thread. If the app ever stops unexpectedly, Settings offers to share an error report (nothing is sent automatically).

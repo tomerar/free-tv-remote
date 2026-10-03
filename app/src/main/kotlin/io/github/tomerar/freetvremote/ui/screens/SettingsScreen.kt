@@ -28,6 +28,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -101,6 +103,30 @@ fun SettingsScreen(onBack: () -> Unit, onManageTvs: () -> Unit, onEditShortcuts:
                 supportingContent = { Text(stringResource(R.string.about_license)) },
             )
             ListItem(headlineContent = { Text(stringResource(R.string.about_privacy)) })
+            val reporter = LocalAppContainer.current.crashReporter
+            val errorReport = remember { mutableStateOf(reporter.read()) }
+            errorReport.value?.let { report ->
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.about_error_report_share)) },
+                    supportingContent = { Text(stringResource(R.string.about_error_report_desc)) },
+                    modifier =
+                        Modifier.clickable {
+                            val send =
+                                Intent(Intent.ACTION_SEND)
+                                    .setType("text/plain")
+                                    .putExtra(Intent.EXTRA_TEXT, report)
+                            context.startActivity(Intent.createChooser(send, null))
+                        },
+                )
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.about_error_report_clear)) },
+                    modifier =
+                        Modifier.clickable {
+                            reporter.clear()
+                            errorReport.value = null
+                        },
+                )
+            }
             ListItem(
                 headlineContent = { Text(stringResource(R.string.about_source)) },
                 supportingContent = { Text(SOURCE_URL) },

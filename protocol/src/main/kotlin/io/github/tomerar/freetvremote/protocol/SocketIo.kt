@@ -22,7 +22,7 @@ internal suspend fun <T> blockingIo(socket: Closeable, block: () -> T): T =
                 try {
                     awaitCancellation()
                 } finally {
-                    if (!finished.get()) runCatching { socket.close() }
+                    if (!finished.get()) socket.closeOffThread()
                 }
             }
         try {
@@ -32,3 +32,17 @@ internal suspend fun <T> blockingIo(socket: Closeable, block: () -> T): T =
             watcher.cancel()
         }
     }
+
+/**
+ * Closes the socket on a short-lived background thread. Closing a TLS socket writes a close alert, and Android
+ * throws `NetworkOnMainThreadException` for that on the main thread, so callers that may run on the main thread
+ * (view-model scopes, UI callbacks) must never close a connected socket directly.
+ */
+internal fun Closeable.closeOffThread() {
+    val target = this
+    try {
+        Thread({ runCatching { target.close() } }, "socket-close").apply { isDaemon = true }.start()
+    } catch (_: OutOfMemoryError) {
+        runCatching { target.close() } // cannot start a thread: closing here beats leaking the connection
+    }
+}

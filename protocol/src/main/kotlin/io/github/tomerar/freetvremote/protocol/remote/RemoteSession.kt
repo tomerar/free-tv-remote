@@ -2,6 +2,7 @@ package io.github.tomerar.freetvremote.protocol.remote
 
 import io.github.tomerar.freetvremote.protocol.MessageFraming
 import io.github.tomerar.freetvremote.protocol.blockingIo
+import io.github.tomerar.freetvremote.protocol.closeOffThread
 import io.github.tomerar.freetvremote.protocol.proto.RemoteDirection
 import io.github.tomerar.freetvremote.protocol.proto.RemoteMessage
 import io.github.tomerar.freetvremote.protocol.tls.ClientIdentity
@@ -109,7 +110,7 @@ public class RemoteSession(
             generation++ // everything still running belongs to an older generation from here on
             job?.cancel()
             job = null
-            link?.socket?.closeQuietly()
+            link?.socket?.closeOffThread() // stop() may be called from the main thread
             link = null
             _connectionState.value = ConnectionState.Idle
         }
@@ -148,7 +149,7 @@ public class RemoteSession(
             blockingIo(current.socket) { write(current.socket, message) }
             true
         } catch (e: IOException) {
-            current.socket.closeQuietly()
+            current.socket.closeOffThread()
             false
         }
     }

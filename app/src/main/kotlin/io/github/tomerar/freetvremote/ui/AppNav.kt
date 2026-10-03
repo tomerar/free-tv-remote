@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,7 +18,14 @@ import io.github.tomerar.freetvremote.ui.screens.SettingsScreen
 import io.github.tomerar.freetvremote.ui.screens.ShortcutsScreen
 import io.github.tomerar.freetvremote.ui.screens.TvsScreen
 
-private object Routes {
+/** Replaces the whole back stack (onboarding or "add a TV") with the remote. */
+internal fun NavController.showRemoteAfterPairing() {
+    navigate(Routes.REMOTE) {
+        popUpTo(graph.id) { inclusive = true }
+    }
+}
+
+internal object Routes {
     const val REMOTE = "remote"
     const val DISCOVER = "discover"
     const val SETTINGS = "settings"
@@ -58,11 +66,7 @@ fun AppNav(startOnboarding: Boolean, navController: NavHostController = remember
                 host = host,
                 name = name,
                 onBack = { navController.popBackStack() },
-                onPaired = {
-                    navController.navigate(Routes.REMOTE) {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                    }
-                },
+                onPaired = { navController.showRemoteAfterPairing() },
             )
         }
         composable(Routes.SETTINGS) {

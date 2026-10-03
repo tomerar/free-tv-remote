@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import java.io.File
 
 class FreeTvRemoteApp : Application() {
     lateinit var container: AppContainer
@@ -11,7 +12,9 @@ class FreeTvRemoteApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        container = AppContainer(this)
+        val crashReporter = CrashReporter(File(noBackupFilesDir, "last_crash.txt"), CrashReporter::deviceHeader)
+        crashReporter.installAsDefaultHandler()
+        container = AppContainer(this, crashReporter)
         container.remoteController.start()
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             object : DefaultLifecycleObserver {

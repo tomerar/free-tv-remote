@@ -15,6 +15,7 @@ import io.github.tomerar.freetvremote.remote.IdentityProvider
 import io.github.tomerar.freetvremote.remote.RemoteController
 import io.github.tomerar.freetvremote.remote.StoredIdentityProvider
 import io.github.tomerar.freetvremote.security.KeystoreKeyProtector
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,11 +26,18 @@ private val Context.appDataStore: DataStore<Preferences> by preferencesDataStore
 /** Hand-rolled dependency container; everything lives as long as the process. */
 class AppContainer(
     context: Context,
+    val crashReporter: CrashReporter =
+        CrashReporter(File(context.applicationContext.noBackupFilesDir, "last_crash.txt"), CrashReporter::deviceHeader),
 ) {
     private val appContext = context.applicationContext
 
     /** Process-wide scope: the remote session must outlive any Activity or Composable. */
-    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val appScope =
+        CoroutineScope(
+            SupervisorJob() + Dispatchers.Default +
+                // An unexpected error in a background job must not take the whole app down; it is recorded instead.
+                CoroutineExceptionHandler { _, error -> runCatching { crashReporter.record("app-scope", error, fatal = false) } },
+        )
 
     private val dataStore = appContext.appDataStore
 

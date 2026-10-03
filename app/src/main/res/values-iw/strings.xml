@@ -151,6 +151,9 @@
     <string name="about_version">גרסה %1$s</string>
     <string name="about_license">תוכנה חופשית ברישיון GNU GPL v3. בלי פרסומות, בלי חשבונות ובלי מעקב.</string>
     <string name="about_privacy">הכול נשאר ברשת המקומית שלכם. האפליקציה לא אוספת מידע.</string>
+    <string name="about_error_report_share">שיתוף דוח השגיאה האחרון</string>
+    <string name="about_error_report_desc">האפליקציה נעצרה באופן לא צפוי. שיתוף הדוח עוזר לתקן את זה; שום דבר לא נשלח אלא אם תבחרו לשתף.</string>
+    <string name="about_error_report_clear">מחיקת דוח השגיאה</string>
     <string name="about_source">קוד מקור ומעקב תקלות</string>
 
     <!-- Quick Settings tile and widget -->

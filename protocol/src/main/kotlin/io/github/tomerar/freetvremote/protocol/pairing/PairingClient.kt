@@ -2,6 +2,7 @@ package io.github.tomerar.freetvremote.protocol.pairing
 
 import io.github.tomerar.freetvremote.protocol.MessageFraming
 import io.github.tomerar.freetvremote.protocol.blockingIo
+import io.github.tomerar.freetvremote.protocol.closeOffThread
 import io.github.tomerar.freetvremote.protocol.proto.PairingConfiguration
 import io.github.tomerar.freetvremote.protocol.proto.PairingEncoding
 import io.github.tomerar.freetvremote.protocol.proto.PairingMessage
@@ -78,13 +79,13 @@ public class PairingClient(
                     ?: throw PairingException.ProtocolError("TV presented no certificate")
             return PairingSession(socket, identity, server)
         } catch (e: PairingException) {
-            socket.closeQuietly()
+            socket.closeOffThread()
             throw e
         } catch (e: IOException) {
-            socket.closeQuietly()
+            socket.closeOffThread()
             throw PairingException.ConnectionFailed(e)
         } catch (e: kotlin.coroutines.cancellation.CancellationException) {
-            socket.closeQuietly()
+            socket.closeOffThread()
             throw e
         }
     }
@@ -172,7 +173,7 @@ public class PairingSession internal constructor(
         return serverCertificate
     }
 
-    override fun close(): Unit = socket.closeQuietly()
+    override fun close(): Unit = socket.closeOffThread()
 }
 
 private fun send(out: java.io.OutputStream, message: PairingMessage) {
@@ -203,12 +204,4 @@ private fun expect(input: java.io.InputStream, predicate: (PairingMessage) -> Bo
     }
     if (!predicate(message)) throw PairingException.ProtocolError("Unexpected message from TV")
     return message
-}
-
-private fun java.io.Closeable.closeQuietly() {
-    try {
-        close()
-    } catch (_: IOException) {
-        // Nothing useful to do.
-    }
 }
