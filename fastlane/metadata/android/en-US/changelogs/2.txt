@@ -1,0 +1,1 @@
+Reliability: safer reconnects, the keyboard keeps your text when sending fails, pairing recovers from storage errors, more reliable discovery, clearer messages. Releases now use a stable signing key.

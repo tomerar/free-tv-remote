@@ -61,6 +61,9 @@ public class FakeTv(
     @Volatile
     private var silent = false
 
+    @Volatile
+    private var remoteAvailable = true
+
     /** When set, the TV answers the pairing secret with BAD_SECRET even if it is right. */
     @Volatile
     public var rejectSecrets: Boolean = false
@@ -99,7 +102,7 @@ public class FakeTv(
         pairingPort = pairing.localPort
         remotePort = remote.localPort
         acceptLoop(pairing, ::handlePairing)
-        acceptLoop(remote, ::handleRemote)
+        acceptLoop(remote, ::handleRemote, available = { remoteAvailable })
     }
 
     private fun newServer(port: Int): SSLServerSocket {
@@ -116,7 +119,7 @@ public class FakeTv(
         return server
     }
 
-    private fun acceptLoop(server: SSLServerSocket, handler: (SSLSocket) -> Unit) {
+    private fun acceptLoop(server: SSLServerSocket, handler: (SSLSocket) -> Unit, available: () -> Boolean = { true }) {
         Thread {
             while (!server.isClosed) {
                 val client =
@@ -125,6 +128,10 @@ public class FakeTv(
                     } catch (e: IOException) {
                         return@Thread
                     }
+                if (!available()) {
+                    runCatching { client.close() } // down: dropped before any TLS handshake
+                    continue
+                }
                 liveSockets.add(client)
                 Thread {
                     try {
@@ -339,16 +346,14 @@ public class FakeTv(
         silent = value
     }
 
-    /** Stops listening on the remote port (connection refused) or starts again on the same port. */
+    /**
+     * Makes the remote port stop answering (`false`) or answer again (`true`). The listening socket stays bound
+     * for the whole life of the fake, so there is no close/re-open race on the port: while "down", connections are
+     * accepted by the OS and dropped before any TLS handshake, and open remote connections are closed.
+     */
     public fun setRemoteReachable(reachable: Boolean) {
-        if (!reachable) {
-            runCatching { remoteServer?.close() }
-            dropRemoteConnections()
-        } else if (remoteServer?.isClosed == true) {
-            val server = newServer(remotePort)
-            remoteServer = server
-            acceptLoop(server, ::handleRemote)
-        }
+        remoteAvailable = reachable
+        if (!reachable) dropRemoteConnections()
     }
 
     override fun close() {

@@ -42,6 +42,13 @@ Text entry (counters learned from the TV's IME messages), feature negotiation, a
 volume reporting follow the community's description of the protocol and `FakeTv`, not observed firmware. Whether
 "sent" means "applied by the TV" is unknown: the app only knows that the write succeeded.
 
+## "No longer paired" is inferred, not reported (unverified on hardware)
+
+The session reports `NOT_PAIRED` after two connections in a row that the TV closes before the handshake
+completes. That is how an unknown client is treated by a TV, but a TV that is waking up or restarting its remote
+service could plausibly do the same and make the app show "no longer paired". Manual Reconnect clears it, and
+nothing is deleted, but whether real TVs trigger this has not been observed (see TESTING.md, G1/G2/M1).
+
 ## Power on
 
 A Wi-Fi remote cannot wake a device whose remote service is unreachable. See
