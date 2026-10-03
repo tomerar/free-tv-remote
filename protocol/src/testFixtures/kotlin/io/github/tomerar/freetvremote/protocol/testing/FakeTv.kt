@@ -82,6 +82,10 @@ public class FakeTv(
     public val typedCounters: CopyOnWriteArrayList<Pair<Int, Int>> = CopyOnWriteArrayList()
     public val pingResponses: AtomicInteger = AtomicInteger()
     public val remoteConnections: AtomicInteger = AtomicInteger()
+
+    /** Remote connections currently open (accepted, paired and not yet closed). */
+    public val activeRemoteConnections: AtomicInteger = AtomicInteger()
+    private val remoteWriters = CopyOnWriteArrayList<(RemoteMessage) -> Unit>()
     public val pairedCount: Int get() = pairedPins.size
 
     init {
@@ -216,6 +220,7 @@ public class FakeTv(
             return // A real TV closes the channel for unknown clients.
         }
         remoteConnections.incrementAndGet()
+        activeRemoteConnections.incrementAndGet()
         val input = socket.inputStream
         val out = socket.outputStream
         val writeLock = Any()
@@ -225,6 +230,8 @@ public class FakeTv(
                 MessageFraming.write(out, RemoteMessage.ADAPTER.encode(message))
                 out.flush()
             }
+        val writer: (RemoteMessage) -> Unit = { send(it) }
+        remoteWriters.add(writer)
 
         val pinger =
             Thread {
@@ -242,16 +249,16 @@ public class FakeTv(
             }.apply { isDaemon = true }
         pinger.start()
 
-        send(
-            RemoteMessage(
-                remote_configure =
-                    RemoteConfigure(
-                        features = 622,
-                        device_info = RemoteDeviceInfo(model = "Fake TV", vendor = "Fake Inc"),
-                    ),
-            ),
-        )
         try {
+            send(
+                RemoteMessage(
+                    remote_configure =
+                        RemoteConfigure(
+                            features = 622,
+                            device_info = RemoteDeviceInfo(model = "Fake TV", vendor = "Fake Inc"),
+                        ),
+                ),
+            )
             while (true) {
                 val bytes = MessageFraming.read(input) ?: return
                 if (silent) continue
@@ -296,6 +303,8 @@ public class FakeTv(
             }
         } finally {
             pinger.interrupt()
+            remoteWriters.remove(writer)
+            activeRemoteConnections.decrementAndGet()
         }
     }
 
@@ -304,6 +313,12 @@ public class FakeTv(
     /** Clears the displayed code so a test can wait for the next pairing's code. */
     public fun displayedCodeReset() {
         displayedCode = null
+    }
+
+    /** Pushes a volume update to every open remote connection (as a TV does when its volume changes). */
+    public fun sendVolume(level: Int) {
+        val message = RemoteMessage(remote_set_volume_level = RemoteSetVolumeLevel(volume_max = 100, volume_level = level))
+        remoteWriters.forEach { runCatching { it(message) } }
     }
 
     /** Forget a previously paired client (as if the user removed it in the TV's settings). */
