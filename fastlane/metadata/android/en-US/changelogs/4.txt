@@ -1,0 +1,1 @@
+Fixed the keyboard buttons being squeezed on phones. The status card is shorter and shows readable app names instead of technical ids.

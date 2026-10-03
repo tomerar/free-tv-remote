@@ -93,22 +93,18 @@ internal fun KeyboardPanel(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            FilledTonalButton(onClick = { onKey(KeyCodes.DEL) }) {
+        Button(onClick = onSend, enabled = draft.isNotEmpty() && !sending, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
+            Text(stringResource(R.string.keyboard_send), modifier = Modifier.padding(start = 8.dp))
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilledTonalButton(onClick = { onKey(KeyCodes.DEL) }, modifier = Modifier.weight(1f)) {
                 Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = null)
                 Text(stringResource(R.string.keyboard_backspace), modifier = Modifier.padding(start = 8.dp))
             }
-            FilledTonalButton(onClick = { onKey(KeyCodes.ENTER) }) {
+            FilledTonalButton(onClick = { onKey(KeyCodes.ENTER) }, modifier = Modifier.weight(1f)) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardReturn, contentDescription = null)
                 Text(stringResource(R.string.keyboard_enter), modifier = Modifier.padding(start = 8.dp))
-            }
-            Button(onClick = onSend, enabled = draft.isNotEmpty() && !sending) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
-                Text(stringResource(R.string.keyboard_send), modifier = Modifier.padding(start = 8.dp))
             }
         }
     }

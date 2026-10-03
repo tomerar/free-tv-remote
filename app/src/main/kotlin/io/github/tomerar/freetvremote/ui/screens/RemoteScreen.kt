@@ -93,6 +93,7 @@ import io.github.tomerar.freetvremote.ui.RemoteUiState
 import io.github.tomerar.freetvremote.ui.RemoteViewModel
 import io.github.tomerar.freetvremote.ui.components.DPad
 import io.github.tomerar.freetvremote.ui.components.RemoteKeyButton
+import io.github.tomerar.freetvremote.ui.friendlyAppName
 import io.github.tomerar.freetvremote.ui.rememberHaptics
 import io.github.tomerar.freetvremote.ui.simpleFactory
 import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
@@ -300,9 +301,11 @@ private fun TvDetails(tv: TvState) {
             } else if (tv.volumeLevel != null && tv.volumeMax != null) {
                 add(stringResource(R.string.tv_volume, tv.volumeLevel!!, tv.volumeMax!!))
             }
-            tv.currentApp?.let { add(stringResource(R.string.tv_current_app, it)) }
+            tv.currentApp?.let(::friendlyAppName)?.let { add(stringResource(R.string.tv_current_app, stringResource(it))) }
         }
-    parts.forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    if (parts.isNotEmpty()) {
+        Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable

@@ -26,6 +26,11 @@
     <string name="tv_power_off">הטלוויזיה כבויה או במצב המתנה</string>
     <string name="tv_volume">עוצמת שמע %1$d מתוך %2$d</string>
     <string name="tv_volume_muted">מושתק</string>
+    <string name="tv_app_home">מסך הבית</string>
+    <string name="tv_app_netflix">Netflix</string>
+    <string name="tv_app_youtube">YouTube</string>
+    <string name="tv_app_disney">Disney+</string>
+    <string name="tv_app_prime">Prime Video</string>
     <string name="tv_current_app">מוצג כעת: %1$s</string>
 
     <!-- Remote screen -->
@@ -59,7 +64,7 @@
     <string name="keyboard_send">שליחה</string>
     <string name="keyboard_enter">Enter</string>
     <string name="keyboard_backspace">מחיקה אחורה</string>
-    <string name="keyboard_note">בחרו קודם שדה טקסט בטלוויזיה. ההקלדה עובדת כשהמקלדת שעל המסך מוצגת בטלוויזיה.</string>
+    <string name="keyboard_note">בחרו קודם שדה טקסט בטלוויזיה.</string>
     <string name="keyboard_status_sending">שולח…</string>
     <string name="keyboard_status_sent">נשלח לטלוויזיה</string>
     <string name="keyboard_error_not_connected">אין חיבור לטלוויזיה, ולכן לא נשלח דבר. הטקסט שלכם נשמר; התחברו מחדש ונסו שוב.</string>

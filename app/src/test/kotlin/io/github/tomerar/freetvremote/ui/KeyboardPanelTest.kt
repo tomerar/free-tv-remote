@@ -2,8 +2,10 @@ package io.github.tomerar.freetvremote.ui
 
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.unit.dp
 import io.github.tomerar.freetvremote.data.ThemeMode
 import io.github.tomerar.freetvremote.remote.KeyboardStatus
 import io.github.tomerar.freetvremote.ui.screens.KeyboardPanel
@@ -36,6 +38,15 @@ class KeyboardPanelTest {
         compose.onNodeWithText("my search").assertExists()
         compose.onNodeWithText("Could not send. Your text is kept; try again.").assertExists()
         compose.onNodeWithText("Send").assertIsEnabled()
+    }
+
+    @Test
+    fun `the buttons are wide enough to read on a phone`() {
+        show("x", KeyboardStatus.Idle)
+        // Regression: Send was squeezed into a narrow column with its letters stacked.
+        compose.onNodeWithText("Send").assertWidthIsAtLeast(200.dp)
+        compose.onNodeWithText("Backspace").assertWidthIsAtLeast(80.dp)
+        compose.onNodeWithText("Enter").assertWidthIsAtLeast(60.dp)
     }
 
     @Test

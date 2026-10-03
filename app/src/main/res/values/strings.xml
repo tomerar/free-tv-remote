@@ -26,6 +26,11 @@
     <string name="tv_power_off">TV is off or in standby</string>
     <string name="tv_volume">Volume %1$d of %2$d</string>
     <string name="tv_volume_muted">Muted</string>
+    <string name="tv_app_home">Home screen</string>
+    <string name="tv_app_netflix">Netflix</string>
+    <string name="tv_app_youtube">YouTube</string>
+    <string name="tv_app_disney">Disney+</string>
+    <string name="tv_app_prime">Prime Video</string>
     <string name="tv_current_app">Now showing: %1$s</string>
 
     <!-- Remote screen -->
@@ -59,7 +64,7 @@
     <string name="keyboard_send">Send</string>
     <string name="keyboard_enter">Enter</string>
     <string name="keyboard_backspace">Backspace</string>
-    <string name="keyboard_note">Select a text field on the TV first. Typing works while the TV shows its on-screen keyboard.</string>
+    <string name="keyboard_note">Select a text field on the TV first.</string>
     <string name="keyboard_status_sending">Sending…</string>
     <string name="keyboard_status_sent">Sent to the TV</string>
     <string name="keyboard_error_not_connected">Not connected to the TV, so nothing was sent. Your text is kept; reconnect and try again.</string>
