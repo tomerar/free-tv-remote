@@ -2,10 +2,18 @@ package io.github.tomerar.freetvremote.ui
 
 import android.app.Application
 import android.graphics.Bitmap
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.captureToImage
@@ -13,15 +21,19 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import io.github.tomerar.freetvremote.AppContainer
 import io.github.tomerar.freetvremote.data.SavedTv
 import io.github.tomerar.freetvremote.data.ThemeMode
 import io.github.tomerar.freetvremote.protocol.remote.ConnectionState
 import io.github.tomerar.freetvremote.protocol.remote.TvState
+import io.github.tomerar.freetvremote.remote.KeyGestures
+import io.github.tomerar.freetvremote.remote.KeySender
 import io.github.tomerar.freetvremote.ui.screens.DiagnosticsScreen
 import io.github.tomerar.freetvremote.ui.screens.DiscoverScreen
 import io.github.tomerar.freetvremote.ui.screens.PairScreen
+import io.github.tomerar.freetvremote.ui.screens.RemoteControlsPanel
 import io.github.tomerar.freetvremote.ui.screens.RemoteScreen
 import io.github.tomerar.freetvremote.ui.screens.SettingsScreen
 import io.github.tomerar.freetvremote.ui.screens.ShortcutsScreen
@@ -61,7 +73,7 @@ class ScreensScreenshotTest {
     private fun shoot(name: String, content: @Composable () -> Unit) {
         compose.setContent {
             CompositionLocalProvider(LocalAppContainer provides container) {
-                FreeTvRemoteTheme(ThemeMode.DARK) {
+                FreeTvRemoteTheme(ThemeMode.DARK, dynamicColor = false) {
                     Surface(Modifier, color = MaterialTheme.colorScheme.background) { content() }
                 }
             }

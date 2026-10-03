@@ -7,9 +7,12 @@
 | **Automated tests** (`./gradlew check`): protocol unit tests, end-to-end tests against the in-process `FakeTv`, app/ViewModel tests, Robolectric UI tests, lint | The code does what its authors intended: framing, pairing secret, TLS pinning, message encoding, reconnect and lifecycle logic, UI behaviour, localisation | That real TV firmware agrees. `FakeTv` was written by the same people, from the same assumptions, as the client. Client and simulator can agree with each other and still differ from a vendor's Android TV Remote Service |
 | **Physical-device evidence** (this document) | Whether pairing, feature negotiation, keys, text entry, volume, app links, standby recovery, widgets and the tile work on a specific TV, phone and software version | Anything about devices you did not test |
 
-**No physical-device result has been recorded yet.** Until results exist in
-[`docs/hardware-results/`](docs/hardware-results), the app must not be described as compatible with, or tested
-on, any particular TV. The README compatibility table only lists devices with recorded evidence.
+**Status of hardware evidence.** No full-checklist result file has been recorded yet. The maintainer has tried the
+app by hand on **one TCL Google TV** with an Android phone (pairing, connecting, navigating, volume and the status
+card worked); that informal check is reported in [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) and is **not** a
+substitute for this checklist. Beyond that single device the app must not be described as compatible with, or
+tested on, any particular TV, and nothing is listed as verified without a results file in
+[`docs/hardware-results/`](docs/hardware-results).
 
 ## 2. Rules for recording results
 

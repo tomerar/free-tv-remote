@@ -17,6 +17,6 @@ Free TV Remote turns your phone into a Wi-Fi remote for Android TV and Google TV
 The app talks only to your TV on your local network. It collects no data, contains no analytics or ads, and needs no Google services.
 
 <b>Requirements</b>
-Phone and TV must be on the same Wi-Fi network. Works with devices that support the Android TV Remote protocol v2, such as Android TV and Google TV televisions and streaming boxes (compatibility reports are collected on GitHub). On Android 17 and newer the app asks for permission to access devices on your local network.
+Phone and TV must be on the same Wi-Fi network. Works with Android TV and Google TV devices (tested on a TCL Google TV; other devices are expected to work and compatibility reports are collected on GitHub). LG (webOS) and Samsung (Tizen) TVs are not Android TV and are not supported. On Android 17 and newer the app asks for permission to access devices on your local network.
 
 This is an early version. Compatibility reports are very welcome on GitHub.

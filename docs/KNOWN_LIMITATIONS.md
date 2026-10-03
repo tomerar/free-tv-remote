@@ -28,6 +28,11 @@ and shortcuts and text now report when they were not sent, but the D-pad and oth
 feedback, and the haptic tick confirms the touch, not delivery. A follow-up could dim the controls while
 disconnected.
 
+## LG (webOS) and Samsung (Tizen) TVs are not supported
+
+They are not Android TV and do not implement the Android TV Remote protocol this app speaks. See
+[COMPATIBILITY.md](COMPATIBILITY.md#lg-and-samsung).
+
 ## Quick settings tile and widget connect on demand
 
 With the app closed they open a short-lived connection per tap. Taps are serialised (one temporary connection
@@ -38,8 +43,10 @@ hardware (see TESTING.md, K4). A short idle reuse window for the temporary conne
 
 ## Protocol behaviour that is only verified against the simulator
 
-Text entry (counters learned from the TV's IME messages), feature negotiation, app links, standby recovery and
-volume reporting follow the community's description of the protocol and `FakeTv`, not observed firmware. Whether
+Pairing, connecting, navigation keys and volume/power status have been seen working on one TCL Google TV (informal
+check, see [COMPATIBILITY.md](COMPATIBILITY.md)). Text entry (counters learned from the TV's IME messages), feature
+negotiation, app links and standby recovery still follow the community's description of the protocol and `FakeTv`,
+not observed firmware. Whether
 "sent" means "applied by the TV" is unknown: the app only knows that the write succeeded.
 
 ## Status card details depend on what the TV reports (unverified on hardware)

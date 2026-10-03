@@ -53,11 +53,28 @@ class HardwareChecklistDocsTest {
     }
 
     @Test
-    fun `the docs do not claim any physical device was verified`() {
-        val readme = File(root, "README.md").readText()
-        assertTrue(readme.contains("no physical-device result has been", ignoreCase = true))
+    fun `the docs claim exactly what was verified and not more`() {
+        // Sentences wrap across lines (and blockquote markers) in Markdown; compare on flattened text.
+        fun flat(file: String) = File(root, file).readText().replace(Regex("""\s*\n(>\s*)?"""), " ")
+        val readme = flat("README.md")
+        val compatibility = flat("docs/COMPATIBILITY.md")
+        // The one real check so far is informal, on one TCL Google TV; the full checklist is not done.
+        assertTrue(readme.contains("TCL Google TV"))
+        assertTrue(readme.contains("has not been completed", ignoreCase = true))
+        assertTrue(compatibility.contains("has **not been completed**", ignoreCase = true))
+        // LG and Samsung must be stated as unsupported, never as working or planned as a promise.
+        assertTrue(readme.contains("Not supported"))
+        assertTrue(compatibility.contains("not promised", ignoreCase = true))
+        // Result files may only exist together with an updated claim: today only the template and the index exist.
         val results = File(root, "docs/hardware-results").listFiles().orEmpty().map { it.name }
-        // Only the template and the index may exist until real evidence is added by a person who ran the tests.
-        assertFalse(results.any { it !in setOf("README.md", "TEMPLATE.md") } && readme.contains("no physical-device result has been"))
+        assertEquals(setOf("README.md", "TEMPLATE.md"), results.toSet())
+    }
+
+    @Test
+    fun `every document linked from the README exists`() {
+        val readme = File(root, "README.md").readText()
+        val links = Regex("""\]\(((?:docs/|[A-Z_]+\.md)[^)#\s]*)""").findAll(readme).map { it.groupValues[1] }.toSet()
+        assertTrue("no links found", links.size > 8)
+        links.forEach { assertTrue("README links to a missing file: $it", File(root, it).exists()) }
     }
 }

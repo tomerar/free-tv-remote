@@ -55,3 +55,10 @@ Dim or disable the remote controls while the connection is down, instead of sile
 ## 13. Reuse the temporary quick-key connection for a few seconds  [enhancement]
 Rapid widget taps (volume up several times) each open a new connection today. Keep one temporary session alive
 for a short idle window.
+
+## Research: LG webOS and Samsung Tizen remotes  [research, help wanted]
+Neither platform implements the Android TV Remote protocol, so supporting them means a separate client per
+platform. First step is research only: how pairing works, what is publicly documented, and whether a design fits the
+project's rules (open source, local only, no cloud, no tracking). **Done when** a short design note per platform
+exists in `docs/`, with the open questions. Owners of such TVs who can test a prototype are especially welcome.
+See [COMPATIBILITY.md](COMPATIBILITY.md#lg-and-samsung).
