@@ -3,6 +3,7 @@ package io.github.tomerar.freetvremote.remote
 import io.github.tomerar.freetvremote.awaitUntil
 import io.github.tomerar.freetvremote.awaitValue
 import io.github.tomerar.freetvremote.data.TvRepository
+import io.github.tomerar.freetvremote.protocol.pairing.PairingClient
 import io.github.tomerar.freetvremote.protocol.testing.FakeTv
 import io.github.tomerar.freetvremote.protocol.tls.publicKeyPin
 import io.github.tomerar.freetvremote.testDataStore
@@ -35,7 +36,16 @@ class PairingCoordinatorTest {
     fun setUp() {
         tv = FakeTv()
         repo = TvRepository(testDataStore(scope, tmp.root))
-        coordinator = PairingCoordinator(scope, testIdentityProvider, repo)
+        coordinator =
+            PairingCoordinator(
+                scope,
+                testIdentityProvider,
+                repo,
+                // Bounded timeouts: a TV that never answers must end in a failure, never hang a test.
+                PairingClientFactory { id, host, port ->
+                    PairingClient(id, host, port, connectTimeoutMs = 2_000, readTimeoutMs = 5_000)
+                },
+            )
     }
 
     @After
