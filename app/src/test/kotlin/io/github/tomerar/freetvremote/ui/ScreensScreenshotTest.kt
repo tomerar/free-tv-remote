@@ -1,0 +1,101 @@
+package io.github.tomerar.freetvremote.ui
+
+import android.app.Application
+import android.graphics.Bitmap
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onRoot
+import androidx.test.core.app.ApplicationProvider
+import io.github.tomerar.freetvremote.AppContainer
+import io.github.tomerar.freetvremote.data.ThemeMode
+import io.github.tomerar.freetvremote.ui.screens.DiscoverScreen
+import io.github.tomerar.freetvremote.ui.screens.PairScreen
+import io.github.tomerar.freetvremote.ui.screens.RemoteScreen
+import io.github.tomerar.freetvremote.ui.screens.SettingsScreen
+import io.github.tomerar.freetvremote.ui.screens.ShortcutsScreen
+import io.github.tomerar.freetvremote.ui.screens.TvsScreen
+import io.github.tomerar.freetvremote.ui.theme.FreeTvRemoteTheme
+import kotlinx.coroutines.runBlocking
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import java.io.File
+
+/**
+ * Renders every screen to PNG files under `build/screenshots` for visual review, and doubles as a
+ * smoke test: no screen may crash on first composition, in English or Hebrew.
+ */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [36], qualifiers = "w411dp-h891dp-xxhdpi")
+class ScreensScreenshotTest {
+    @get:Rule
+    val compose = createComposeRule()
+
+    private val container: AppContainer by lazy {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        AppContainer(app).also { c ->
+            runBlocking {
+                c.tvRepository.savePaired("Living Room Shield", "192.168.1.20", byteArrayOf(1, 2, 3), 6466, 6467)
+                c.tvRepository.savePaired("Bedroom TCL", "192.168.1.31", byteArrayOf(4, 5, 6), 6466, 6467)
+            }
+        }
+    }
+
+    private fun shoot(name: String, content: @Composable () -> Unit) {
+        compose.setContent {
+            CompositionLocalProvider(LocalAppContainer provides container) {
+                FreeTvRemoteTheme(ThemeMode.DARK) {
+                    Surface(Modifier, color = MaterialTheme.colorScheme.background) { content() }
+                }
+            }
+        }
+        compose.waitForIdle()
+        val bitmap = compose.onRoot().captureToImage().asAndroidBitmap()
+        val dir = File("build/screenshots").apply { mkdirs() }
+        File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+
+    private fun remote() =
+        shoot("screen_remote") {
+            RemoteScreen(onOpenSettings = {}, onAddTv = {}, onManageTvs = {}, onEditShortcuts = {}, onPairAgain = { _, _ -> })
+        }
+
+    @Test
+    fun remoteScreen() = remote()
+
+    @Test
+    @Config(qualifiers = "he-w411dp-h891dp-xxhdpi")
+    fun remoteScreenHebrew() =
+        shoot("screen_remote_he") {
+            RemoteScreen(onOpenSettings = {}, onAddTv = {}, onManageTvs = {}, onEditShortcuts = {}, onPairAgain = { _, _ -> })
+        }
+
+    @Test
+    fun discoverScreen() = shoot("screen_discover") { DiscoverScreen(onBack = {}, onPair = { _, _ -> }) }
+
+    @Test
+    fun pairScreen() = shoot("screen_pair") { PairScreen("192.168.1.20", "Living Room Shield", onBack = {}, onPaired = {}) }
+
+    @Test
+    fun settingsScreen() = shoot("screen_settings") { SettingsScreen(onBack = {}, onManageTvs = {}, onEditShortcuts = {}) }
+
+    @Test
+    @Config(qualifiers = "he-w411dp-h891dp-xxhdpi")
+    fun settingsScreenHebrew() = shoot("screen_settings_he") { SettingsScreen(onBack = {}, onManageTvs = {}, onEditShortcuts = {}) }
+
+    @Test
+    fun shortcutsScreen() = shoot("screen_shortcuts") { ShortcutsScreen(onBack = {}) }
+
+    @Test
+    fun tvsScreen() = shoot("screen_tvs") { TvsScreen(onBack = {}, onAddTv = {}) }
+}

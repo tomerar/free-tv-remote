@@ -82,6 +82,8 @@ import io.github.tomerar.freetvremote.protocol.remote.FailureReason
 import io.github.tomerar.freetvremote.protocol.remote.KeyCodes
 import io.github.tomerar.freetvremote.protocol.remote.TvState
 import io.github.tomerar.freetvremote.remote.KeyBehavior
+import io.github.tomerar.freetvremote.remote.KeyGestures
+import io.github.tomerar.freetvremote.ui.Haptics
 import io.github.tomerar.freetvremote.ui.LocalAppContainer
 import io.github.tomerar.freetvremote.ui.LocalNetworkPermission
 import io.github.tomerar.freetvremote.ui.RemoteUiState
@@ -182,7 +184,7 @@ fun RemoteScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             StatusCard(state, vm::reconnect, onPairAgain)
-            RemoteControls(vm, haptics)
+            RemoteControlsPanel(vm.gestures, haptics, vm::tap)
             ShortcutRow(state.shortcuts, onLaunch = vm::launch, onEdit = onEditShortcuts)
             Spacer(Modifier.height(8.dp))
         }
@@ -318,62 +320,67 @@ private fun connectionLabel(state: RemoteUiState): String =
         }
     }
 
+/** All the keys of the remote. [onTap] is the single-tap action used by TalkBack's "activate". */
 @Composable
-private fun RemoteControls(vm: RemoteViewModel, haptics: io.github.tomerar.freetvremote.ui.Haptics) {
-    val gestures = vm.gestures
-    val tap = vm::tap
-
-    @Composable
-    fun key(
-        icon: ImageVector,
-        label: Int,
-        code: Int,
-        behavior: KeyBehavior = KeyBehavior.TAP_OR_LONG,
-        container: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        contentColor: Color = MaterialTheme.colorScheme.onSurface,
-    ) = RemoteKeyButton(
-        icon = icon,
-        description = stringResource(label),
-        code = code,
-        gestures = gestures,
-        haptics = haptics,
-        onAccessibilityClick = tap,
-        behavior = behavior,
-        container = container,
-        contentColor = contentColor,
-    )
-
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        key(
-            Icons.Filled.PowerSettingsNew,
-            R.string.key_power,
-            KeyCodes.POWER,
-            container = MaterialTheme.colorScheme.errorContainer,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+internal fun RemoteControlsPanel(gestures: KeyGestures, haptics: Haptics, onTap: (Int) -> Unit) {
+    val tap = onTap
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        @Composable
+        fun key(
+            icon: ImageVector,
+            label: Int,
+            code: Int,
+            behavior: KeyBehavior = KeyBehavior.TAP_OR_LONG,
+            container: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            contentColor: Color = MaterialTheme.colorScheme.onSurface,
+        ) = RemoteKeyButton(
+            icon = icon,
+            description = stringResource(label),
+            code = code,
+            gestures = gestures,
+            haptics = haptics,
+            onAccessibilityClick = tap,
+            behavior = behavior,
+            container = container,
+            contentColor = contentColor,
         )
-        key(Icons.Filled.VolumeOff, R.string.key_mute, KeyCodes.VOLUME_MUTE)
-    }
-    DPad(gestures = gestures, haptics = haptics, onAccessibilityClick = tap)
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-        key(Icons.AutoMirrored.Filled.ArrowBack, R.string.key_back, KeyCodes.BACK)
-        key(Icons.Filled.Home, R.string.key_home, KeyCodes.HOME)
-        key(Icons.Filled.Menu, R.string.key_menu, KeyCodes.MENU)
-    }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-        key(Icons.Filled.Remove, R.string.key_volume_down, KeyCodes.VOLUME_DOWN, KeyBehavior.REPEAT)
-        Icon(
-            Icons.Filled.VolumeUp,
-            contentDescription = stringResource(R.string.remote_volume_group),
-            tint = MaterialTheme.colorScheme.primary,
-        )
-        key(Icons.Filled.Add, R.string.key_volume_up, KeyCodes.VOLUME_UP, KeyBehavior.REPEAT)
-    }
-    // Transport controls keep their physical direction in right-to-left layouts.
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            key(
+                Icons.Filled.PowerSettingsNew,
+                R.string.key_power,
+                KeyCodes.POWER,
+                container = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            key(Icons.Filled.VolumeOff, R.string.key_mute, KeyCodes.VOLUME_MUTE)
+        }
+        DPad(gestures = gestures, haptics = haptics, onAccessibilityClick = tap)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-            key(Icons.Filled.FastRewind, R.string.key_rewind, KeyCodes.MEDIA_REWIND, KeyBehavior.REPEAT)
-            key(Icons.Filled.PlayArrow, R.string.key_play_pause, KeyCodes.MEDIA_PLAY_PAUSE)
-            key(Icons.Filled.FastForward, R.string.key_forward, KeyCodes.MEDIA_FAST_FORWARD, KeyBehavior.REPEAT)
+            key(Icons.AutoMirrored.Filled.ArrowBack, R.string.key_back, KeyCodes.BACK)
+            key(Icons.Filled.Home, R.string.key_home, KeyCodes.HOME)
+            key(Icons.Filled.Menu, R.string.key_menu, KeyCodes.MENU)
+        }
+        // Volume (− left, + right) and transport controls keep their physical direction in right-to-left layouts.
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                key(Icons.Filled.Remove, R.string.key_volume_down, KeyCodes.VOLUME_DOWN, KeyBehavior.REPEAT)
+                Icon(
+                    Icons.Filled.VolumeUp,
+                    contentDescription = stringResource(R.string.remote_volume_group),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                key(Icons.Filled.Add, R.string.key_volume_up, KeyCodes.VOLUME_UP, KeyBehavior.REPEAT)
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                key(Icons.Filled.FastRewind, R.string.key_rewind, KeyCodes.MEDIA_REWIND, KeyBehavior.REPEAT)
+                key(Icons.Filled.PlayArrow, R.string.key_play_pause, KeyCodes.MEDIA_PLAY_PAUSE)
+                key(Icons.Filled.FastForward, R.string.key_forward, KeyCodes.MEDIA_FAST_FORWARD, KeyBehavior.REPEAT)
+            }
         }
     }
 }
@@ -392,7 +399,7 @@ private fun ShortcutRow(shortcuts: List<AppShortcut>, onLaunch: (AppShortcut) ->
                 val description = stringResource(R.string.remote_launch_shortcut, shortcut.name)
                 AssistChip(
                     onClick = { onLaunch(shortcut) },
-                    label = { Text(shortcut.name) },
+                    label = { Text(shortcut.name + LRM) },
                     modifier =
                         Modifier
                             .height(48.dp)
@@ -403,3 +410,6 @@ private fun ShortcutRow(shortcuts: List<AppShortcut>, onLaunch: (AppShortcut) ->
         }
     }
 }
+
+/** Keeps brand names such as "Disney+" in left-to-right order inside right-to-left text. */
+private const val LRM = "‎"

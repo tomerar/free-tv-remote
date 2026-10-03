@@ -48,6 +48,7 @@ import io.github.tomerar.freetvremote.ui.Haptics
 private const val INNER_FRACTION = 0.40f
 private const val SECTOR_SWEEP = 90f
 private const val SECTOR_GAP = 2f
+private const val OK_GAP_FRACTION = 0.03f
 
 /** A quarter ring: the touch area (and visible shape) of one D-pad direction. */
 private class SectorShape(
@@ -150,7 +151,7 @@ private fun DPadCenter(size: Dp, gestures: KeyGestures, haptics: Haptics, onAcce
         Box(
             modifier =
                 Modifier
-                    .size(size * (INNER_FRACTION * 2 - 0.06f))
+                    .size(size * (INNER_FRACTION - OK_GAP_FRACTION))
                     .clip(CircleShape)
                     .background(if (pressed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer)
                     .remoteKey(

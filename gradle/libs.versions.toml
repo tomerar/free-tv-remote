@@ -11,6 +11,7 @@ navigation = "2.10.2"
 datastore = "1.2.1"
 coreKtx = "1.19.1"
 junit = "4.13.2"
+robolectric = "4.17"
 ktlintPlugin = "14.2.0"
 detekt = "1.23.8"
 
@@ -35,6 +36,9 @@ navigation-compose = { module = "androidx.navigation:navigation-compose", versio
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 junit = { module = "junit:junit", version.ref = "junit" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
