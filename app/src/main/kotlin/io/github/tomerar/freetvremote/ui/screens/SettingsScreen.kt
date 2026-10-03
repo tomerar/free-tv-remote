@@ -1,6 +1,7 @@
 package io.github.tomerar.freetvremote.ui.screens
 
 import android.content.Intent
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -72,6 +73,9 @@ fun SettingsScreen(onBack: () -> Unit, onManageTvs: () -> Unit, onEditShortcuts:
             SwitchRow(R.string.settings_volume_keys, R.string.settings_volume_keys_desc, settings.useVolumeKeys, vm::setUseVolumeKeys)
 
             SectionTitle(R.string.settings_theme)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                SwitchRow(R.string.settings_dynamic_color, R.string.settings_dynamic_color_desc, settings.dynamicColor, vm::setDynamicColor)
+            }
             Column(Modifier.selectableGroup()) {
                 ThemeOption(R.string.theme_system, ThemeMode.SYSTEM, settings.theme, vm::setTheme)
                 ThemeOption(R.string.theme_dark, ThemeMode.DARK, settings.theme, vm::setTheme)

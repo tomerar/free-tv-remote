@@ -5,14 +5,18 @@ import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import io.github.tomerar.freetvremote.data.AppSettings
 import io.github.tomerar.freetvremote.protocol.remote.KeyCodes
@@ -38,9 +42,14 @@ class MainActivity : ComponentActivity() {
                         .isNotEmpty()
             }
             CompositionLocalProvider(LocalAppContainer provides container) {
-                FreeTvRemoteTheme(settings.theme) {
+                FreeTvRemoteTheme(settings.theme, settings.dynamicColor) {
                     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                        hasTvs?.let { AppNav(startOnboarding = !it) }
+                        // On tablets and unfolded screens the app stays a centered, readable column.
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                            Box(Modifier.widthIn(max = MAX_CONTENT_WIDTH).fillMaxSize()) {
+                                hasTvs?.let { AppNav(startOnboarding = !it) }
+                            }
+                        }
                     }
                 }
             }
@@ -67,3 +76,5 @@ class MainActivity : ComponentActivity() {
         return if (isVolume && container.volumeKeys.active) true else super.onKeyUp(keyCode, event)
     }
 }
+
+private val MAX_CONTENT_WIDTH = 640.dp

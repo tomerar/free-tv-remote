@@ -13,7 +13,8 @@ enum class ThemeMode { SYSTEM, DARK, LIGHT }
 data class AppSettings(
     val hapticsEnabled: Boolean = true,
     val keepScreenOn: Boolean = false,
-    val theme: ThemeMode = ThemeMode.DARK,
+    val theme: ThemeMode = ThemeMode.SYSTEM,
+    val dynamicColor: Boolean = true,
     val useVolumeKeys: Boolean = true,
 )
 
@@ -27,6 +28,7 @@ class SettingsRepository(
                 hapticsEnabled = prefs[HAPTICS] ?: defaults.hapticsEnabled,
                 keepScreenOn = prefs[KEEP_SCREEN_ON] ?: defaults.keepScreenOn,
                 theme = prefs[THEME]?.let { name -> ThemeMode.entries.firstOrNull { it.name == name } } ?: defaults.theme,
+                dynamicColor = prefs[DYNAMIC_COLOR] ?: defaults.dynamicColor,
                 useVolumeKeys = prefs[VOLUME_KEYS] ?: defaults.useVolumeKeys,
             )
         }
@@ -43,6 +45,10 @@ class SettingsRepository(
         store.edit { it[THEME] = mode.name }
     }
 
+    suspend fun setDynamicColor(enabled: Boolean) {
+        store.edit { it[DYNAMIC_COLOR] = enabled }
+    }
+
     suspend fun setUseVolumeKeys(enabled: Boolean) {
         store.edit { it[VOLUME_KEYS] = enabled }
     }
@@ -51,6 +57,7 @@ class SettingsRepository(
         val HAPTICS = booleanPreferencesKey("haptics")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val THEME = stringPreferencesKey("theme")
+        val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val VOLUME_KEYS = booleanPreferencesKey("volume_keys")
     }
 }

@@ -261,6 +261,10 @@ class SettingsViewModel(
         viewModelScope.launch { repo.setUseVolumeKeys(value) }
     }
 
+    fun setDynamicColor(value: Boolean) {
+        viewModelScope.launch { repo.setDynamicColor(value) }
+    }
+
     fun setTheme(mode: ThemeMode) {
         viewModelScope.launch { repo.setTheme(mode) }
     }

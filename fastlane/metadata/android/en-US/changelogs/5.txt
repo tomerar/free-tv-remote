@@ -1,0 +1,1 @@
+The app now follows your phone: wallpaper colors (Material You, can be turned off in Settings) and the system light/dark theme by default. On tablets the app stays a centered column. All controls are checked to be at least 48 dp.

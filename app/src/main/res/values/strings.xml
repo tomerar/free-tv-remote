@@ -141,6 +141,8 @@
     <string name="settings_volume_keys">Use phone volume buttons</string>
     <string name="settings_volume_keys_desc">Control the TV volume with the phone\'s volume buttons</string>
     <string name="settings_theme">Theme</string>
+    <string name="settings_dynamic_color">Use wallpaper colors</string>
+    <string name="settings_dynamic_color_desc">Match the app colors to your phone\'s wallpaper and theme.</string>
     <string name="theme_system">System default</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>

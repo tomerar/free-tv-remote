@@ -141,6 +141,8 @@
     <string name="settings_volume_keys">שימוש בכפתורי עוצמת השמע של הטלפון</string>
     <string name="settings_volume_keys_desc">שליטה בעוצמת השמע של הטלוויזיה בעזרת כפתורי הטלפון</string>
     <string name="settings_theme">ערכת נושא</string>
+    <string name="settings_dynamic_color">צבעים מהטפט</string>
+    <string name="settings_dynamic_color_desc">התאמת צבעי האפליקציה לטפט ולעיצוב של הטלפון.</string>
     <string name="theme_system">לפי המערכת</string>
     <string name="theme_dark">כהה</string>
     <string name="theme_light">בהירה</string>
