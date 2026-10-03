@@ -52,6 +52,14 @@ keytool -genkeypair -v -keystore free-tv-remote-release.jks -alias release \
 
 A manual run with the tag left **empty** only produces a development APK (artifact, not a release).
 
+### Publishing without the stable key (explicit opt-in, not recommended)
+
+If you have not set up the project key yet, a **manual** run with a tag and `allow_unstable_signing = true` publishes
+a release signed with a one-off key. The release notes then carry a bold warning, because Android cannot update such
+an app in place from or to any other release: people must uninstall it (losing their saved TVs and pairing) before
+installing the next one. Tag pushes never get this fallback and always need the stable key. Switch to the stable
+key as early as possible; every release signed with a one-off key is a dead end for the people who installed it.
+
 ## Checking update compatibility yourself
 
 Signer of any APK (`apksigner` is in the Android SDK `build-tools`):

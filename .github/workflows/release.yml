@@ -10,6 +10,10 @@ name: Release
 #    uploads it as a workflow artifact only. It installs fine but is NOT update-compatible with any other
 #    build, and it never creates a release.
 #
+# A published release can ALSO be built with a one-off key, but only by an explicit opt-in on a manual run
+# (allow_unstable_signing = true). Such a release is labelled as not update-compatible in its notes. Tag pushes
+# never get that fallback.
+#
 # Maintainer guide: docs/RELEASING.md
 on:
   push:
@@ -21,8 +25,14 @@ on:
         required: false
         default: ""
         type: string
+      allow_unstable_signing:
+        description: "Only with a tag: publish with a one-off signing key (NOT update-compatible; users must uninstall before installing a later release). Leave false to require the stable project key"
+        required: false
+        default: false
+        type: boolean
 
 env:
+  ALLOW_UNSTABLE: ${{ github.event.inputs.allow_unstable_signing }}
   TAG: ${{ github.event.inputs.tag || (startsWith(github.ref, 'refs/tags/') && github.ref_name) || '' }}
 
 permissions:
@@ -48,8 +58,18 @@ jobs:
               echo "::error title=Tag and app version differ::The tag is $TAG but app/build.gradle.kts has versionName $VERSION_NAME. Bump versionCode and versionName first."
               exit 1
             fi
+            if [ "$ALLOW_UNSTABLE" = "true" ]; then
+              # Explicit opt-in, manual runs only: tag pushes leave ALLOW_UNSTABLE empty and always need the stable key.
+              echo "KEYMODE=unstable" >> "$GITHUB_ENV"
+              echo "SIGNING_NOTE=WARNING: this build is signed with a one-off key, not a stable project key. Android will not update it in place from, or to, any other release: uninstall it before installing a later release (your saved TVs and pairing are removed with the app)." >> "$GITHUB_ENV"
+              echo "::warning title=Unstable signing::Publishing with a one-off key (allow_unstable_signing). This release cannot be updated in place."
+            else
+              echo "KEYMODE=stable" >> "$GITHUB_ENV"
+              echo "SIGNING_NOTE=Signed with the stable project key: later releases update this one in place." >> "$GITHUB_ENV"
+            fi
           else
             echo "MODE=dev" >> "$GITHUB_ENV"
+            echo "KEYMODE=unstable" >> "$GITHUB_ENV"
             echo "::notice title=Development build::No tag given: this APK uses a one-off key, is not update-compatible and will not be published."
           fi
 
@@ -72,7 +92,8 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        run: .github/scripts/prepare-signing.sh "$MODE"
+        run: |
+          if [ "$KEYMODE" = stable ]; then .github/scripts/prepare-signing.sh publish; else .github/scripts/prepare-signing.sh dev; fi
 
       - name: Build and test
         run: ./gradlew check assembleRelease --stacktrace
@@ -80,7 +101,9 @@ jobs:
       - name: Verify the signature and the signing identity
         env:
           RELEASE_CERT_SHA256: ${{ vars.RELEASE_CERT_SHA256 }}
-        run: .github/scripts/verify-signature.sh app/build/outputs/apk/release/app-release.apk "$MODE"
+        run: |
+          if [ "$KEYMODE" = stable ]; then VERIFY=publish; else VERIFY=dev; fi
+          .github/scripts/verify-signature.sh app/build/outputs/apk/release/app-release.apk "$VERIFY"
 
       - name: Name the APK and write the summary
         run: |
@@ -120,4 +143,6 @@ jobs:
 
             Optional: check the download against the `.sha256` file. Full guide: https://github.com/${{ github.repository }}/blob/main/docs/INSTALL.md
 
-            Signing certificate SHA-256 (the same for every update-compatible release): `${{ env.CERT_SHA256 }}`
+            **${{ env.SIGNING_NOTE }}**
+
+            Signing certificate SHA-256: `${{ env.CERT_SHA256 }}`
