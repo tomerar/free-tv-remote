@@ -52,9 +52,9 @@ class TvIdentityCheckTest {
     @Test
     fun `an address where nothing listens is not confirmed`() =
         runBlocking {
-            val port = tv.remotePort
-            tv.close()
-            assertFalse(confirmPinnedTv(identity, "127.0.0.1", port, pin, connectTimeoutMs = 500))
+            // The port stays bound but nothing answers (a TV that is off): no race with whoever else may take a freed port.
+            tv.setRemoteReachable(false)
+            assertFalse(confirmPinnedTv(identity, "127.0.0.1", tv.remotePort, pin, connectTimeoutMs = 500))
         }
 
     @Test

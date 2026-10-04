@@ -121,10 +121,9 @@ class EndToEndTest {
     @Test
     fun `pairing a TV that is off reports a connection failure`() =
         runBlocking {
-            val port = tv.pairingPort
-            tv.close()
+            tv.setPairingReachable(false)
             try {
-                PairingClient(identity, "127.0.0.1", port, connectTimeoutMs = 500).begin()
+                PairingClient(identity, "127.0.0.1", tv.pairingPort, connectTimeoutMs = 500).begin()
                 fail("expected ConnectionFailed")
             } catch (_: PairingException.ConnectionFailed) {
                 // expected
