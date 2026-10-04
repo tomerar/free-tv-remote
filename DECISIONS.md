@@ -173,6 +173,11 @@ listed in docs/ISSUES.md.
 **D33. New launcher icon: the D-pad as a symbol** (four quarter rings and the OK dot, the right ring lit). Original
 artwork as a vector drawable, with a separate monochrome layer for Android 13 themed icons.
 
+**D34. Pairing restarts itself after two local code mismatches.** The code check runs on the phone against the
+certificate recorded on that connection, so a mismatch means the code does not fit this connection (typo or a stale
+session), never that the TV refused it. One miss keeps the session (typo); a second in a row reconnects and the
+screen says the TV shows a new code. Failure logs also name the platform exception, because R8 renames ours.
+
 ## Testing
 
 **D24. Three layers.** (1) Pure JVM unit tests for framing, protobuf bytes, secret, certificates and identity store.

@@ -74,7 +74,7 @@ fun PairScreen(host: String, name: String, serviceName: String? = null, onBack: 
         Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.TopCenter) {
             when (val s = state) {
                 PairingState.Idle, PairingState.Connecting -> Progress(R.string.pair_connecting)
-                is PairingState.AwaitingCode -> CodeEntry(invalid = s.lastCodeWasInvalid, onSubmit = vm::submit)
+                is PairingState.AwaitingCode -> CodeEntry(invalid = s.lastCodeWasInvalid, freshCode = s.freshCode, onSubmit = vm::submit)
                 PairingState.Verifying -> Progress(R.string.pair_verifying)
                 is PairingState.Success -> Success()
                 is PairingState.Failed -> Failure(s.reason, onRetry = vm::retry, onBack = onBack)
@@ -100,8 +100,10 @@ private fun Success() {
 }
 
 @Composable
-private fun CodeEntry(invalid: Boolean, onSubmit: (String) -> Unit) {
+private fun CodeEntry(invalid: Boolean, freshCode: Boolean, onSubmit: (String) -> Unit) {
     var code by rememberSaveable { mutableStateOf("") }
+    // A restarted pairing shows a different code on the TV: the old input is useless.
+    LaunchedEffect(freshCode) { if (freshCode) code = "" }
     val ready = code.length == PairingSecret.CODE_LENGTH
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -116,8 +118,13 @@ private fun CodeEntry(invalid: Boolean, onSubmit: (String) -> Unit) {
             },
             modifier = Modifier.fillMaxWidth(),
             label = { Text(stringResource(R.string.pair_code_label)) },
-            isError = invalid,
-            supportingText = { if (invalid) Text(stringResource(R.string.pair_code_invalid)) },
+            isError = invalid && !freshCode,
+            supportingText = {
+                when {
+                    freshCode -> Text(stringResource(R.string.pair_code_fresh))
+                    invalid -> Text(stringResource(R.string.pair_code_invalid))
+                }
+            },
             singleLine = true,
             textStyle =
                 MaterialTheme.typography.headlineMedium.copy(

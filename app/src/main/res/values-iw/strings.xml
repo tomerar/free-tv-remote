@@ -135,10 +135,11 @@
     <string name="pair_enter_code">הזינו את הקוד בן 6 התווים שמוצג בטלוויזיה</string>
     <string name="pair_code_label">קוד התאמה</string>
     <string name="pair_code_invalid">הקוד שגוי. בדקו את מסך הטלוויזיה ונסו שוב.</string>
+    <string name="pair_code_fresh">הטלוויזיה מציגה כעת קוד חדש. הזינו אותו.</string>
     <string name="pair_submit">התאמה</string>
     <string name="pair_verifying">בודק את הקוד…</string>
     <string name="pair_success">ההתאמה הצליחה!</string>
-    <string name="pair_failed_unreachable">לא ניתן להגיע לטלוויזיה. ודאו שהיא דולקת ומחוברת לאותה רשת Wi-Fi.</string>
+    <string name="pair_failed_unreachable">לא ניתן להגיע לטלוויזיה. ודאו שהיא דולקת ומחוברת לאותה רשת Wi-Fi. אם הדלקתם אותה הרגע, המתינו שתגיע למסך הבית ונסו שוב.</string>
     <string name="pair_failed_rejected">הטלוויזיה לא אישרה את ההתאמה. התחילו מחדש והזינו את הקוד החדש.</string>
     <string name="pair_failed_unexpected">הטלוויזיה השיבה באופן בלתי צפוי. ודאו שהיא תומכת בפרוטוקול השלט של Android TV.</string>
     <string name="pair_failed_internal">הטלפון לא הצליח לשמור את ההתאמה (בעיית אחסון או מפתח אבטחה). פנו מקום באחסון ונסו שוב.</string>

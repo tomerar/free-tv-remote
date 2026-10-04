@@ -134,10 +134,11 @@
     <string name="pair_enter_code">Enter the 6-character code shown on your TV</string>
     <string name="pair_code_label">Pairing code</string>
     <string name="pair_code_invalid">That code is not right. Check the TV screen and try again.</string>
+    <string name="pair_code_fresh">The TV now shows a new code. Enter it.</string>
     <string name="pair_submit">Pair</string>
     <string name="pair_verifying">Checking the code…</string>
     <string name="pair_success">Paired!</string>
-    <string name="pair_failed_unreachable">Could not reach the TV. Check that it is on and on the same Wi-Fi network.</string>
+    <string name="pair_failed_unreachable">Could not reach the TV. Check that it is on and on the same Wi-Fi network. If it was just switched on, wait until it shows the home screen, then try again.</string>
     <string name="pair_failed_rejected">The TV did not accept the pairing. Start again and enter the new code.</string>
     <string name="pair_failed_unexpected">The TV answered in an unexpected way. Make sure it supports the Android TV remote protocol.</string>
     <string name="pair_failed_internal">This phone could not save the pairing (storage or security key problem). Free some space, then try again.</string>

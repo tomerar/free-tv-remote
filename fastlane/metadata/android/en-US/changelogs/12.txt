@@ -1,0 +1,1 @@
+Pairing recovers on its own when the code does not match twice in a row: it reconnects and asks for the TV's new code. Clearer hint when the TV cannot be reached, and readable failure reasons in Diagnostics.

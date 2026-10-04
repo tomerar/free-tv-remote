@@ -128,6 +128,22 @@ class PairingCoordinatorTest {
         }
 
     @Test
+    fun `two wrong codes in a row restart the pairing connection and the new code works`() =
+        runBlocking {
+            begin()
+            coordinator.state.awaitValue { it is PairingState.AwaitingCode }
+            val code = awaitCode()
+            val wrong = code.dropLast(1) + (if (code.last() == '0') '1' else '0')
+            coordinator.submit(wrong)
+            coordinator.state.awaitValue { it == PairingState.AwaitingCode(lastCodeWasInvalid = true) }
+            coordinator.submit(wrong)
+            coordinator.state.awaitValue { it == PairingState.AwaitingCode(freshCode = true) }
+            coordinator.submit(awaitCode())
+            coordinator.state.awaitValue { it is PairingState.Success }
+            assertEquals(1, repo.tvs.first().size)
+        }
+
+    @Test
     fun `malformed input is flagged without touching the network`() =
         runBlocking {
             begin()
