@@ -73,6 +73,8 @@ data class SleepTimerResult(
 data class SleepTimerState(
     val active: SleepTimer? = null,
     val last: SleepTimerResult? = null,
+    /** The minutes the user asked for last time: the next timer starts from it, whatever happened to that one. */
+    val lastMinutes: Int? = null,
 )
 
 object SleepTimerLimits {

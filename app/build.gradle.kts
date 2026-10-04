@@ -78,8 +78,8 @@ android {
         applicationId = "io.github.tomerar.freetvremote"
         minSdk = 26
         targetSdk = 37
-        versionCode = 14
-        versionName = "0.3.1"
+        versionCode = 15
+        versionName = "0.3.2"
         buildConfigField("String", "GIT_COMMIT", "\"$gitCommit\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

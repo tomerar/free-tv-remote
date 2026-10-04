@@ -23,6 +23,7 @@ import io.github.tomerar.freetvremote.remote.PairingCoordinator
 import io.github.tomerar.freetvremote.remote.PairingState
 import io.github.tomerar.freetvremote.remote.ShortcutLauncher
 import io.github.tomerar.freetvremote.timer.SleepTimer
+import io.github.tomerar.freetvremote.timer.SleepTimerLimits
 import io.github.tomerar.freetvremote.timer.SleepTimerResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -54,6 +55,8 @@ data class SleepTimerUiState(
     val last: SleepTimerResult? = null,
     val exactAllowed: Boolean = true,
     val notificationsAllowed: Boolean = true,
+    /** What the "new timer" form starts with: the minutes of the previous timer, or the default. */
+    val initialMinutes: Int = SleepTimerLimits.DEFAULT_MINUTES,
 )
 
 data class RemoteUiState(
@@ -86,6 +89,7 @@ class RemoteViewModel(
             SleepTimerUiState(
                 active = state.active,
                 last = state.last,
+                initialMinutes = state.lastMinutes ?: SleepTimerLimits.DEFAULT_MINUTES,
                 exactAllowed = container.sleepTimerScheduler.canScheduleExact,
                 notificationsAllowed = container.sleepTimerNotifier.enabled(),
             )

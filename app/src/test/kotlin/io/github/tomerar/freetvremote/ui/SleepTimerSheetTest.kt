@@ -1,12 +1,12 @@
 package io.github.tomerar.freetvremote.ui
 
 import android.os.SystemClock
-import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -73,10 +73,17 @@ class SleepTimerSheetTest {
     @Test
     fun `starts with the default of 30 minutes and starts that`() {
         show(SleepTimerUiState())
-        // The big readout and the selected "30 min" chip.
-        compose.onAllNodesWithText("30 min").assertCountEquals(2)
+        compose.onNode(hasSetTextAction()).assertTextContains("30")
         compose.onNodeWithText("Start timer").assertIsEnabled().performClick()
         assertEquals(listOf(30), started)
+    }
+
+    @Test
+    fun `the form starts from the minutes asked for last time, not from the default`() {
+        show(SleepTimerUiState(initialMinutes = 1))
+        compose.onNode(hasSetTextAction()).assertTextContains("1")
+        compose.onNodeWithText("Start timer").performClick()
+        assertEquals(listOf(1), started)
     }
 
     @Test
@@ -90,8 +97,8 @@ class SleepTimerSheetTest {
     @Test
     fun `any number of minutes can be typed`() {
         show(SleepTimerUiState())
-        compose.onNodeWithText("Minutes").performTextClearance()
-        compose.onNodeWithText("Minutes").performTextInput("37")
+        compose.onNode(hasSetTextAction()).performTextClearance()
+        compose.onNode(hasSetTextAction()).performTextInput("37")
         compose.onNodeWithText("Start timer").performClick()
         assertEquals(listOf(37), started)
     }
@@ -99,8 +106,8 @@ class SleepTimerSheetTest {
     @Test
     fun `a number outside the range cannot be started`() {
         show(SleepTimerUiState())
-        compose.onNodeWithText("Minutes").performTextClearance()
-        compose.onNodeWithText("Minutes").performTextInput("999")
+        compose.onNode(hasSetTextAction()).performTextClearance()
+        compose.onNode(hasSetTextAction()).performTextInput("999")
         compose.onNodeWithText("Start timer").assertIsNotEnabled()
     }
 
@@ -140,7 +147,7 @@ class SleepTimerSheetTest {
     @Test
     fun `the last result is explained and can be dismissed`() {
         show(SleepTimerUiState(last = SleepTimerResult(SleepOutcome.ALREADY_OFF, "Living Room", System.currentTimeMillis())))
-        compose.onNodeWithText("Living Room was already off. Nothing was sent.").assertIsDisplayed()
+        compose.onNodeWithText("Living Room was already off, so nothing was sent.").assertIsDisplayed()
         compose.onNodeWithText("Dismiss").performClick()
         assertEquals(1, dismissedResult)
     }

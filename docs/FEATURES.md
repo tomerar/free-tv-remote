@@ -78,10 +78,11 @@ Built-in shortcuts for Netflix, YouTube, Disney+ and Prime Video use deep links;
 
 The moon icon at the top of the remote opens the **sleep timer**: the TV switches itself off after the time you choose.
 
-- **Any duration.** Quick choices (15, 30, 45, 60, 90 and 120 minutes), a number box (1 to 720 minutes) and
-  + / - buttons that move in steps of five. The sheet shows the duration in words and the time the TV will turn off.
-- **See the time left.** While a timer runs, the icon becomes the countdown, the sheet shows a large countdown and a
-  progress bar, and a notification keeps counting down outside the app, with *+15 min* and *Cancel* buttons.
+- **Any duration.** A big number you can type (1 to 720 minutes) with - and + buttons that move in steps of five, and
+  quick choices (15, 30, 45, 60, 90 and 120 minutes). The sheet shows the time the TV will turn off. The form starts
+  from the minutes you asked for last time, also after you cancelled that timer.
+- **See the time left.** While a timer runs, the icon becomes the countdown, the sheet shows a large countdown inside a ring
+  that shrinks, and a notification keeps counting down outside the app, with *+15 min* and *Cancel* buttons.
   Extend by 5, 15 or 30 minutes, or cancel, at any time before the end.
 - **Keeps running when the app is closed.** The end is an alarm-clock alarm set with Android (you will see the alarm icon while it runs), so the timer survives the app being
   swiped away, the process being killed, and a restart of the phone (when the phone was off at the end, the timer is

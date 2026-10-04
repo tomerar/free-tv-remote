@@ -286,6 +286,19 @@ class SleepTimerManagerTest {
         }
 
     @Test
+    fun `the next timer starts from the minutes asked for last, also after cancelling`() =
+        runBlocking {
+            assertNull(repo.current().lastMinutes)
+            manager.start(tv, 1)
+            assertEquals(1, repo.current().lastMinutes)
+            assertTrue(manager.cancel())
+            assertEquals("cancel must not bring back the default", 1, repo.current().lastMinutes)
+            manager.start(tv, 45)
+            manager.extend(15)
+            assertEquals("extending does not change what was asked for", 45, repo.current().lastMinutes)
+        }
+
+    @Test
     fun `the result can be dismissed`() =
         runBlocking {
             val timer = manager.start(tv, 30)!!

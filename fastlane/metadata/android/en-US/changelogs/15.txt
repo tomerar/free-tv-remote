@@ -1,0 +1,1 @@
+A friendlier sleep timer: a big number to type with - and +, a shrinking ring for the time left, clearer messages, and the form now remembers the time you asked for (it no longer jumps back to 30 minutes). The TV gets longer to confirm that it switched off.

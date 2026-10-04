@@ -67,7 +67,9 @@ class SleepTimerManager(
     suspend fun start(tv: SavedTv, minutes: Int): SleepTimer? =
         lock.withLock {
             if (repository.current().active?.phase == SleepTimer.Phase.RUNNING) return@withLock null
-            val duration = SleepTimerLimits.clamp(minutes) * MS_PER_MINUTE
+            val chosen = SleepTimerLimits.clamp(minutes)
+            repository.saveLastMinutes(chosen)
+            val duration = chosen * MS_PER_MINUTE
             arm(tv.id, tv.name, duration, duration).also {
                 log("timer started: ${duration / MS_PER_MINUTE} min, exact alarm=${it.exact}, ${environment()}")
             }

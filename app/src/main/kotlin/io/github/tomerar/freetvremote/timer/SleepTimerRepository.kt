@@ -3,6 +3,7 @@ package io.github.tomerar.freetvremote.timer
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.tomerar.freetvremote.data.AppJson
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +15,7 @@ class SleepTimerRepository(
     private val store: DataStore<Preferences>,
 ) {
     val state: Flow<SleepTimerState> =
-        store.data.map { prefs -> SleepTimerState(decode(prefs[ACTIVE]), decode(prefs[LAST])) }
+        store.data.map { prefs -> SleepTimerState(decode(prefs[ACTIVE]), decode(prefs[LAST]), prefs[LAST_MINUTES]) }
 
     suspend fun current(): SleepTimerState = state.first()
 
@@ -35,6 +36,10 @@ class SleepTimerRepository(
         store.edit { it.remove(ACTIVE) }
     }
 
+    suspend fun saveLastMinutes(minutes: Int) {
+        store.edit { it[LAST_MINUTES] = minutes }
+    }
+
     suspend fun clearLast() {
         store.edit { it.remove(LAST) }
     }
@@ -45,5 +50,6 @@ class SleepTimerRepository(
     private companion object {
         val ACTIVE = stringPreferencesKey("sleep_timer_active")
         val LAST = stringPreferencesKey("sleep_timer_last")
+        val LAST_MINUTES = intPreferencesKey("sleep_timer_last_minutes")
     }
 }
