@@ -27,6 +27,7 @@ class TvShutdownService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val container = (applicationContext as FreeTvRemoteApp).container
         val revision = intent?.getLongExtra(EXTRA_REVISION, NO_REVISION) ?: NO_REVISION
+        container.eventLog.log("Sleep timer", "service started")
         // Must be called within seconds of the start: do it before anything else.
         ServiceCompat.startForeground(
             this,
@@ -56,6 +57,7 @@ class TvShutdownService : Service() {
 
     /** The platform's limit for a short service was reached: stop at once (the timer reconciles on the next start). */
     override fun onTimeout(startId: Int) {
+        (applicationContext as FreeTvRemoteApp).container.eventLog.log("Sleep timer", "service time limit reached, stopping")
         release()
         stopSelf(startId)
     }

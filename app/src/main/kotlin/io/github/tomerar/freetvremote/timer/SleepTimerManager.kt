@@ -1,9 +1,12 @@
 package io.github.tomerar.freetvremote.timer
 
 import io.github.tomerar.freetvremote.data.SavedTv
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /** Sets and clears the alarm that wakes the app at the deadline. */
 interface SleepTimerScheduler {
@@ -47,6 +50,8 @@ class SleepTimerManager(
     private val notifications: SleepTimerNotifications,
     private val shutdown: TvShutdown,
     private val clock: SleepTimerClock,
+    /** Short, non-sensitive notes for the diagnostics log (no names or addresses). */
+    private val log: (String) -> Unit = {},
 ) {
     private val lock = Mutex()
 
@@ -61,7 +66,9 @@ class SleepTimerManager(
         lock.withLock {
             if (repository.current().active?.phase == SleepTimer.Phase.RUNNING) return@withLock null
             val duration = SleepTimerLimits.clamp(minutes) * MS_PER_MINUTE
-            arm(tv.id, tv.name, duration, duration)
+            arm(tv.id, tv.name, duration, duration).also {
+                log("timer started: ${duration / MS_PER_MINUTE} min, exact alarm=${it.exact}")
+            }
         }
 
     /** Adds [minutes] to the running timer. Returns the new timer, or `null` when there is none or it is too late. */
@@ -72,14 +79,20 @@ class SleepTimerManager(
             val extra = SleepTimerLimits.clamp(minutes) * MS_PER_MINUTE
             val remaining = timer.remainingMs(now) + extra
             val maxMs = SleepTimerLimits.MAX_MINUTES * MS_PER_MINUTE
-            arm(timer.tvId, timer.tvName, timer.durationMs + extra, remaining.coerceAtMost(maxMs))
+            arm(timer.tvId, timer.tvName, timer.durationMs + extra, remaining.coerceAtMost(maxMs)).also {
+                log("timer extended by ${extra / MS_PER_MINUTE} min, ${it.remainingMs(now) / MS_PER_MINUTE} min left")
+            }
         }
 
     /** Cancels the running timer. Returns `false` when it is already switching the TV off. */
     suspend fun cancel(): Boolean =
         lock.withLock {
             val timer = repository.current().active ?: return@withLock true
-            if (timer.phase == SleepTimer.Phase.RUNNING) return@withLock false
+            if (timer.phase == SleepTimer.Phase.RUNNING) {
+                log("cancel refused: the TV is already being switched off")
+                return@withLock false
+            }
+            log("timer cancelled")
             scheduler.cancel(timer)
             repository.clearActive()
             notifications.clearCountdown()
@@ -95,14 +108,26 @@ class SleepTimerManager(
     suspend fun onFire(revision: Long) {
         val timer =
             lock.withLock {
-                val current = repository.current().active ?: return
-                if (current.revision != revision || current.phase != SleepTimer.Phase.ARMED) return
+                val current = repository.current().active
+                if (current == null || current.revision != revision || current.phase != SleepTimer.Phase.ARMED) {
+                    log("alarm ignored: no matching timer (cancelled, replaced or already running)")
+                    return
+                }
+                log("alarm fired ${(clock.elapsedRealtimeMs() - current.dueElapsedMs) / MS_PER_SECOND} s after the deadline")
                 firing = revision
                 current.copy(phase = SleepTimer.Phase.RUNNING).also { repository.save(it) }
             }
         // Outside the lock: a cancel arriving now learns that it is too late instead of waiting for the TV.
         try {
-            val outcome = shutdown.run(timer.tvId)
+            val outcome =
+                try {
+                    shutdown.run(timer.tvId)
+                } catch (e: CancellationException) {
+                    // The service ran out of time: record that it is unknown what happened, never leave it RUNNING.
+                    withContext(NonCancellable) { lock.withLock { finish(timer, SleepOutcome.INTERRUPTED) } }
+                    throw e
+                }
+            log("shutdown finished: $outcome")
             lock.withLock { finish(timer, outcome) }
         } finally {
             firing = null
@@ -118,6 +143,11 @@ class SleepTimerManager(
             val timer = repository.current().active ?: return@withLock
             val now = clock.elapsedRealtimeMs()
             val wall = clock.wallClockMs()
+            log(
+                "reconcile: timer ${timer.phase}, ${timer.remainingMs(
+                    now,
+                ) / MS_PER_SECOND} s left, rebooted=${timer.bootCount != clock.bootCount()}",
+            )
             when {
                 timer.phase == SleepTimer.Phase.RUNNING -> {
                     if (firing != timer.revision) finish(timer, SleepOutcome.INTERRUPTED)
@@ -173,6 +203,7 @@ class SleepTimerManager(
     }
 
     private suspend fun finish(timer: SleepTimer, outcome: SleepOutcome) {
+        log("timer ended: $outcome")
         scheduler.cancel(timer)
         val result = SleepTimerResult(outcome, timer.tvName, clock.wallClockMs())
         repository.finish(result)
@@ -182,6 +213,7 @@ class SleepTimerManager(
 
     private companion object {
         const val MS_PER_MINUTE = 60_000L
+        const val MS_PER_SECOND = 1_000L
 
         /** An alarm this late is not going to come; running it now would surprise whoever watches the TV. */
         const val MISSED_AFTER_MS = 2 * MS_PER_MINUTE

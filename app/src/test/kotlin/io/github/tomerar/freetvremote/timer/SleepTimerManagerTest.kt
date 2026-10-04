@@ -5,8 +5,10 @@ import io.github.tomerar.freetvremote.testDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -252,6 +254,35 @@ class SleepTimerManagerTest {
             manager.reconcile()
             assertEquals(timer, repo.current().active)
             assertEquals(timer, scheduled.single())
+        }
+
+    @Test
+    fun `a shutdown that is cut off by the time limit ends as interrupted, not stuck`() =
+        runBlocking {
+            val slow =
+                SleepTimerManager(
+                    repo,
+                    object : SleepTimerScheduler {
+                        override val canScheduleExact = true
+
+                        override fun schedule(timer: SleepTimer) = Unit
+
+                        override fun cancel(timer: SleepTimer) = Unit
+                    },
+                    object : SleepTimerNotifications {
+                        override fun showCountdown(timer: SleepTimer) = Unit
+
+                        override fun clearCountdown() = Unit
+
+                        override fun showResult(result: SleepTimerResult) = Unit
+                    },
+                    { awaitCancellation() },
+                    SleepTimerClock({ elapsed }, { wall }, { boot }),
+                )
+            val timer = slow.start(tv, 30)!!
+            withTimeoutOrNull(300) { slow.onFire(timer.revision) }
+            assertNull(repo.current().active)
+            assertEquals(SleepOutcome.INTERRUPTED, repo.current().last?.outcome)
         }
 
     @Test

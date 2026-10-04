@@ -18,6 +18,7 @@ class SleepTimerReceiver : BroadcastReceiver() {
         val container = (context.applicationContext as FreeTvRemoteApp).container
         val manager = container.sleepTimer
         val revision = intent.data?.lastPathSegment?.toLongOrNull()
+        container.eventLog.log("Sleep timer", "received ${intent.action?.substringAfterLast('.')}")
         when (intent.action) {
             ACTION_FIRE -> {
                 val id = revision ?: return

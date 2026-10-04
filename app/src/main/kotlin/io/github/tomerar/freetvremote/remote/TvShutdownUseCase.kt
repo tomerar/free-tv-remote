@@ -35,6 +35,7 @@ class TvShutdownUseCase(
 ) : TvShutdown {
     override suspend fun run(tvId: String): SleepOutcome {
         val tv = tvs.tvs.first().firstOrNull { it.id == tvId } ?: return SleepOutcome.TV_REMOVED
+        log("shutting down: open remote on this TV=${controller.activeTv.value?.id == tvId}, connection=${controller.connection.value}")
         return withTimeoutOrNull(totalTimeoutMs) { shutDown(tv) } ?: SleepOutcome.UNREACHABLE
     }
 
@@ -52,6 +53,7 @@ class TvShutdownUseCase(
                     withTimeoutOrNull(connectTimeoutMs) {
                         session.connectionState.first { it == ConnectionState.Connected || it is ConnectionState.Failed }
                     }
+                log("attempt ${attempt + 1}: connection ${connected ?: "timed out"}")
                 if (connected == ConnectionState.Connected) {
                     return decide(session.tvState) { session.pressKey(KeyCodes.POWER) }
                 }
@@ -69,10 +71,12 @@ class TvShutdownUseCase(
             log("sleep timer: the TV sent no power report, nothing was sent")
             return SleepOutcome.UNKNOWN_STATE
         }
+        log("the TV reports it is ${if (report.isOn == true) "on" else "off"}")
         if (report.isOn != true) return SleepOutcome.ALREADY_OFF
         if (!press()) return SleepOutcome.FAILED
         log("sleep timer: power key sent")
         val off = withTimeoutOrNull(offReportTimeoutMs) { tvState.first { it.isOnFresh && it.isOn == false } }
+        log("standby report after the key: ${off != null}")
         return if (off != null) SleepOutcome.TURNED_OFF else SleepOutcome.SENT
     }
 

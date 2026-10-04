@@ -95,5 +95,6 @@ class AppContainer(
                     wallClockMs = System::currentTimeMillis,
                     bootCount = { Settings.Global.getInt(appContext.contentResolver, Settings.Global.BOOT_COUNT, 0) },
                 ),
+            log = { eventLog.log("Sleep timer", it) },
         )
 }
