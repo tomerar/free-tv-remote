@@ -69,6 +69,10 @@ public class FakeTv(
     @Volatile
     public var rejectSecrets: Boolean = false
 
+    /** What the TV reports as its power state right after a client connected; `null` sends no power report at all. */
+    @Volatile
+    public var powerOnAtConnect: Boolean? = true
+
     public val pairingPort: Int
     public val remotePort: Int
     public val serverCertificate: X509Certificate get() = identity.certificate
@@ -280,7 +284,7 @@ public class FakeTv(
                     }
 
                     message.remote_set_active != null -> {
-                        send(RemoteMessage(remote_start = RemoteStart(started = true)))
+                        announcePower(::send)
                         send(RemoteMessage(remote_set_volume_level = RemoteSetVolumeLevel(volume_max = 100, volume_level = 25)))
                         send(
                             RemoteMessage(
@@ -319,11 +323,21 @@ public class FakeTv(
         }
     }
 
+    private fun announcePower(send: (RemoteMessage) -> Unit) {
+        powerOnAtConnect?.let { send(RemoteMessage(remote_start = RemoteStart(started = it))) }
+    }
+
     // --- Test controls ---------------------------------------------------------------------
 
     /** Clears the displayed code so a test can wait for the next pairing's code. */
     public fun displayedCodeReset() {
         displayedCode = null
+    }
+
+    /** Pushes a power report to every open remote connection (a TV announces it when it turns on or goes to standby). */
+    public fun sendPower(started: Boolean) {
+        val message = RemoteMessage(remote_start = RemoteStart(started = started))
+        remoteWriters.forEach { runCatching { it(message) } }
     }
 
     /** Pushes a volume update to every open remote connection (as a TV does when its volume changes). */

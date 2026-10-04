@@ -24,6 +24,7 @@ import io.github.tomerar.freetvremote.remote.KeySender
 import io.github.tomerar.freetvremote.ui.screens.RemoteActions
 import io.github.tomerar.freetvremote.ui.screens.RemoteContent
 import io.github.tomerar.freetvremote.ui.screens.RemoteNavigation
+import io.github.tomerar.freetvremote.ui.screens.SleepTimerActions
 import io.github.tomerar.freetvremote.ui.theme.FreeTvRemoteTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -88,6 +89,7 @@ class RemoteLayoutTest {
                             onSwitchTv = {},
                             onReconnect = {},
                             onOpenKeyboard = { events += "keyboard" },
+                            timer = SleepTimerActions({}, {}, {}, {}, {}),
                             navigation =
                                 RemoteNavigation(
                                     onOpenSettings = { events += "settings" },

@@ -178,6 +178,16 @@ certificate recorded on that connection, so a mismatch means the code does not f
 session), never that the TV refused it. One miss keeps the session (typo); a second in a row reconnects and the
 screen says the TV shows a new code. Failure logs also name the platform exception, because R8 renames ours.
 
+**D35. Sleep timer on the phone, safe power-off.** There is no known command to start the TV's own sleep timer over
+the remote protocol, and a vendor menu cannot be driven reliably, so the timer runs on the phone: persisted state
+(DataStore), one `AlarmManager.setExactAndAllowWhileIdle` alarm (approximate fallback when exact alarms are not
+allowed), a short foreground service for the connection, a countdown notification the system draws itself. A
+reconcile at start, boot, update and permission change restores the alarm; a timer that ended while it could not run
+is *missed* and never fires late. Power is a toggle, so the key goes out only if the TV reports "on" on the current
+connection (`TvState.isOnFresh`), once, never retried after the write. The open remote's connection is reused;
+otherwise a short extra one is opened. No dependency was added (no WorkManager). Not done: TV-side scheduling,
+companion app, lock mode (see KNOWN_LIMITATIONS).
+
 ## Testing
 
 **D24. Three layers.** (1) Pure JVM unit tests for framing, protobuf bytes, secret, certificates and identity store.

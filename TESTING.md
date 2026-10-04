@@ -190,6 +190,22 @@ The menu path to forget a paired phone differs per vendor (often *Android TV Rem
 | --- | --- | --- |
 | O1 | Watch router logs or a network monitor while using the app | Only the TV (ports 6466/6467) and mDNS |
 
+### P. Sleep timer
+Set it from the moon icon at the top of the remote. Use a short time (1 to 3 minutes) for most checks.
+
+| ID | Steps | Expected / record |
+| --- | --- | --- |
+| P1 | Start 2 minutes with the TV on, close the app (swipe it from recents) and wait | The TV goes to standby at the time. Record the delay, whether the TV reported it (result: "turned off" or "command sent") and how long the connection took |
+| P2 | Start 2 minutes with the TV already in standby or off | Nothing is sent; the result says it was already off or could not be reached. The TV is **not** turned on. Record which of the two it was |
+| P3 | Start a timer, turn the TV off with its own remote, wait for the end | Same as P2: the TV stays off |
+| P4 | Start a timer with a custom number (for example 7), then use +5, +15, +30 | The countdown and the "turns off at" time follow; the old deadline no longer fires |
+| P5 | Cancel a running timer from the sheet and from the notification | Nothing happens at the old time; the notification disappears |
+| P6 | Phone locked and still for 30 minutes (and again unplugged), then the timer ends | Record whether the TV went off on time and by how much it was late. Repeat with exact alarms allowed and not allowed |
+| P7 | Start a timer, restart the phone before the end, unlock | The countdown returns with the right time left. If the end passed while the phone was off: "missed", and the TV is not switched off late |
+| P8 | Deny notifications; deny "Alarms and reminders" | The timer still starts; the sheet says what is limited |
+| P9 | Switch the open remote to another TV while the timer runs | The timer still acts on the TV it was started for |
+| P10 | Start a timer on a TV that is the one currently open, and one on a TV that is not | Record that the open TV keeps its connection (no second connection) and that the other is reached by a short extra one |
+
 ## 6. Power on and off: documented limits
 
 The app sends the same power key as the official remote, over Wi-Fi, to the TV's *Android TV Remote Service*.

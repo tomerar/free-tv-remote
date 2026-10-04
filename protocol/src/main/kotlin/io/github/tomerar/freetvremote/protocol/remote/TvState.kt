@@ -3,6 +3,12 @@ package io.github.tomerar.freetvremote.protocol.remote
 /** What the TV told us about itself. `null` means "not reported yet". */
 public data class TvState(
     val isOn: Boolean? = null,
+    /**
+     * [isOn] was reported by the TV during the current connection. `false` right after (re)connecting and
+     * whenever the TV could not be reached: then [isOn] may be a leftover and must not be used to decide
+     * anything irreversible, such as sending a power toggle.
+     */
+    val isOnFresh: Boolean = false,
     val volumeLevel: Int? = null,
     val volumeMax: Int? = null,
     val isMuted: Boolean? = null,

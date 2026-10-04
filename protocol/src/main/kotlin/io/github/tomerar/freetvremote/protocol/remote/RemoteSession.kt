@@ -212,7 +212,7 @@ public class RemoteSession(
             val wait = config.backoffMs[attempt.coerceAtMost(config.backoffMs.lastIndex)]
             attempt++
             ifCurrent(gen) {
-                if (outcome == Outcome.Unreachable) _tvState.update { it.copy(isOn = false) }
+                if (outcome == Outcome.Unreachable) _tvState.update { it.copy(isOn = false, isOnFresh = false) }
                 publish(ConnectionState.Reconnecting(attempt, wait))
             }
             delay(wait)
@@ -232,6 +232,7 @@ public class RemoteSession(
         val sock = TlsSupport.socketFactory(identity, trust).createSocket() as SSLSocket
         val attempt = attemptSeq.incrementAndGet()
         seenKinds.clear()
+        ifCurrent(gen) { _tvState.update { it.copy(isOnFresh = false) } }
         val mine = Link(gen, sock)
         val registered =
             synchronized(lock) {
@@ -316,7 +317,7 @@ public class RemoteSession(
                 publish(ConnectionState.Connected)
             }
         }
-        message.remote_start?.let { start -> ifCurrent(gen) { _tvState.update { it.copy(isOn = start.started) } } }
+        message.remote_start?.let { start -> ifCurrent(gen) { _tvState.update { it.copy(isOn = start.started, isOnFresh = true) } } }
         message.remote_set_volume_level?.let { volume ->
             ifCurrent(gen) {
                 _tvState.update {

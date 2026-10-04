@@ -64,6 +64,25 @@ completes. That is how an unknown client is treated by a TV, but a TV that is wa
 service could plausibly do the same and make the app show "no longer paired". Manual Reconnect clears it, and
 nothing is deleted, but whether real TVs trigger this has not been observed (see TESTING.md, G1/G2/M1).
 
+## The sleep timer runs on the phone
+
+The timer is an alarm on the phone that connects to the TV at the end and sends the power key. Consequences:
+
+- The phone must be on and on the same Wi-Fi at that time. If not, the TV is not switched off and the result says so.
+  A timer built into the TV (for example TCL's *Settings > System > Power & energy > Sleep timer*) does not have this
+  limit, but no command to set it over the network is known, so the app does not set it.
+- The alarm is exact only when the user allows *Alarms and reminders* (Android 12 and newer). Without it Android may
+  run it a few minutes late; the sheet says so. Android also limits how many alarms may wake an idle phone, so two
+  timers a few minutes apart in deep sleep may not both be on time.
+- **Force stop** removes the alarm (Android 15 and newer). Restarting the phone keeps the timer if it has not ended.
+- The power key toggles. If someone switches the TV off with the physical remote in the second between the app
+  reading "on" and sending the key, the TV is turned on again. This cannot be ruled out from the phone.
+- A TV that does not report its power state (no report on the connection) is left alone.
+- It is a convenience, not parental control: anyone can switch the TV on again, and the phone can be switched off.
+- Behaviour on a locked, idle phone differs between makers (battery savers). Treat the result notification as the
+  truth and report your phone model if the TV stays on.
+- Not yet verified on real TVs; see [TESTING.md](../TESTING.md), section P.
+
 ## Power on
 
 A Wi-Fi remote cannot wake a device whose remote service is unreachable. See

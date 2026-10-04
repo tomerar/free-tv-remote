@@ -2,6 +2,7 @@ package io.github.tomerar.freetvremote.ui
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.os.SystemClock
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +33,9 @@ import io.github.tomerar.freetvremote.protocol.remote.ConnectionState
 import io.github.tomerar.freetvremote.protocol.remote.TvState
 import io.github.tomerar.freetvremote.remote.KeyGestures
 import io.github.tomerar.freetvremote.remote.KeySender
+import io.github.tomerar.freetvremote.timer.SleepOutcome
+import io.github.tomerar.freetvremote.timer.SleepTimer
+import io.github.tomerar.freetvremote.timer.SleepTimerResult
 import io.github.tomerar.freetvremote.ui.screens.DiagnosticsScreen
 import io.github.tomerar.freetvremote.ui.screens.DiscoverScreen
 import io.github.tomerar.freetvremote.ui.screens.PairScreen
@@ -42,6 +46,8 @@ import io.github.tomerar.freetvremote.ui.screens.RemoteNavigation
 import io.github.tomerar.freetvremote.ui.screens.RemoteScreen
 import io.github.tomerar.freetvremote.ui.screens.SettingsScreen
 import io.github.tomerar.freetvremote.ui.screens.ShortcutsScreen
+import io.github.tomerar.freetvremote.ui.screens.SleepTimerActions
+import io.github.tomerar.freetvremote.ui.screens.SleepTimerContent
 import io.github.tomerar.freetvremote.ui.screens.StatusCard
 import io.github.tomerar.freetvremote.ui.screens.TvsScreen
 import io.github.tomerar.freetvremote.ui.theme.FreeTvRemoteTheme
@@ -193,9 +199,66 @@ class ScreensScreenshotTest {
             gestures = gestures,
             haptics = rememberHaptics(false),
             snackbarHost = remember { SnackbarHostState() },
-            actions = RemoteActions({}, {}, {}, {}, {}, RemoteNavigation({}, {}, {}, {}, {}, { _, _ -> })),
+            actions =
+                RemoteActions(
+                    {},
+                    {},
+                    {},
+                    {},
+                    {},
+                    SleepTimerActions({}, {}, {}, {}, {}),
+                    RemoteNavigation({}, {}, {}, {}, {}, { _, _ -> }),
+                ),
         )
     }
+
+    private val noTimerActions = SleepTimerActions({}, {}, {}, {}, {})
+
+    private fun runningTimer(remainingMs: Long) =
+        SleepTimer(
+            revision = 1,
+            tvId = "1",
+            tvName = "Living Room",
+            durationMs = 3_600_000,
+            dueElapsedMs = SystemClock.elapsedRealtime() + remainingMs,
+            dueWallMs = System.currentTimeMillis() + remainingMs,
+            bootCount = 1,
+            exact = true,
+        )
+
+    @Test
+    fun sleepTimerNew() = shoot("v4_sleep_timer_new") { SleepTimerContent(SleepTimerUiState(), "Living Room", noTimerActions) }
+
+    @Test
+    fun sleepTimerNewWithNotices() =
+        shoot("v4_sleep_timer_notices") {
+            SleepTimerContent(
+                SleepTimerUiState(
+                    last = SleepTimerResult(SleepOutcome.ALREADY_OFF, "Living Room", System.currentTimeMillis()),
+                    exactAllowed = false,
+                    notificationsAllowed = false,
+                ),
+                "Living Room",
+                noTimerActions,
+            )
+        }
+
+    @Test
+    fun sleepTimerRunning() =
+        shoot("v4_sleep_timer_running") {
+            SleepTimerContent(SleepTimerUiState(active = runningTimer(42 * 60_000L + 10_000)), "Living Room", noTimerActions)
+        }
+
+    @Test
+    @Config(qualifiers = "he-w411dp-h891dp-xxhdpi")
+    fun sleepTimerRunningHebrew() =
+        shoot("v4_sleep_timer_running_he") {
+            SleepTimerContent(SleepTimerUiState(active = runningTimer(42 * 60_000L + 10_000)), "Living Room", noTimerActions)
+        }
+
+    @Test
+    @Config(qualifiers = "he-w411dp-h891dp-xxhdpi")
+    fun sleepTimerNewHebrew() = shoot("v4_sleep_timer_new_he") { SleepTimerContent(SleepTimerUiState(), "Living Room", noTimerActions) }
 
     private val playing = sampleState.tvState.copy(textFieldActive = false)
 

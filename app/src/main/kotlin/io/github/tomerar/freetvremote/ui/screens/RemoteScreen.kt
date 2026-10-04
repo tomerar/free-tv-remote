@@ -1,5 +1,7 @@
 package io.github.tomerar.freetvremote.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -30,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.Input
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FastForward
@@ -72,6 +75,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalView
@@ -95,16 +99,19 @@ import io.github.tomerar.freetvremote.protocol.remote.KeyCodes
 import io.github.tomerar.freetvremote.protocol.remote.TvState
 import io.github.tomerar.freetvremote.remote.KeyBehavior
 import io.github.tomerar.freetvremote.remote.KeyGestures
+import io.github.tomerar.freetvremote.timer.SleepTimer
 import io.github.tomerar.freetvremote.ui.Haptics
 import io.github.tomerar.freetvremote.ui.LocalAppContainer
 import io.github.tomerar.freetvremote.ui.RemoteUiState
 import io.github.tomerar.freetvremote.ui.RemoteViewModel
+import io.github.tomerar.freetvremote.ui.SleepTimerPermissions
 import io.github.tomerar.freetvremote.ui.components.DPad
 import io.github.tomerar.freetvremote.ui.components.KeyRocker
 import io.github.tomerar.freetvremote.ui.components.ROCKER_HEIGHT
 import io.github.tomerar.freetvremote.ui.components.ROCKER_WIDTH
 import io.github.tomerar.freetvremote.ui.components.RemoteKeyButton
 import io.github.tomerar.freetvremote.ui.components.RockerKey
+import io.github.tomerar.freetvremote.ui.formatCountdown
 import io.github.tomerar.freetvremote.ui.rememberHaptics
 import io.github.tomerar.freetvremote.ui.shortcutStyle
 import io.github.tomerar.freetvremote.ui.simpleFactory
@@ -144,15 +151,49 @@ fun RemoteScreen(
             snackbarHost.showSnackbar(resources.getString(R.string.shortcut_not_sent, name))
         }
     }
+    LaunchedEffect(vm) { vm.timerMessages.collect { snackbarHost.showSnackbar(resources.getString(it)) } }
+    // The user may have allowed exact alarms or notifications in the system settings.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.refreshSleepPermissions() }
+
+    // The timer starts whatever the user answers; a refused permission only limits what is shown or how exact it is.
+    val context = LocalContext.current
+    var pendingMinutes by remember { mutableStateOf<Int?>(null) }
+    val permissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            pendingMinutes?.let(vm::startSleepTimer)
+            pendingMinutes = null
+            vm.refreshSleepPermissions()
+        }
+    val timerActions =
+        remember(vm, context) {
+            SleepTimerActions(
+                onStart = { minutes ->
+                    val missing = SleepTimerPermissions.missing(context)
+                    if (missing.isEmpty()) {
+                        vm.startSleepTimer(minutes)
+                    } else {
+                        pendingMinutes = minutes
+                        permissionLauncher.launch(missing.toTypedArray())
+                    }
+                },
+                onExtend = vm::extendSleepTimer,
+                onCancel = vm::cancelSleepTimer,
+                onDismissResult = vm::dismissSleepResult,
+                onOpenExactSettings = {
+                    SleepTimerPermissions.exactAlarmSettings(context)?.let { runCatching { context.startActivity(it) } }
+                },
+            )
+        }
 
     val actions =
-        remember(vm, onOpenSettings, onAddTv, onManageTvs, onEditShortcuts, onPairAgain, onOpenDiagnostics) {
+        remember(vm, timerActions, onOpenSettings, onAddTv, onManageTvs, onEditShortcuts, onPairAgain, onOpenDiagnostics) {
             RemoteActions(
                 onTap = vm::tap,
                 onLaunch = vm::launch,
                 onSwitchTv = vm::switchTv,
                 onReconnect = vm::reconnect,
                 onOpenKeyboard = { showKeyboard = true },
+                timer = timerActions,
                 navigation =
                     RemoteNavigation(
                         onOpenSettings = onOpenSettings,
@@ -189,6 +230,7 @@ internal fun RemoteContent(
     actions: RemoteActions,
 ) {
     var showTvMenu by remember { mutableStateOf(false) }
+    var showSleepTimer by remember { mutableStateOf(false) }
     val switchTvDescription = stringResource(R.string.remote_switch_tv)
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHost) },
@@ -233,6 +275,7 @@ internal fun RemoteContent(
                     }
                 },
                 actions = {
+                    SleepTimerButton(state.sleepTimer.active) { showSleepTimer = true }
                     IconButton(onClick = actions.navigation.onOpenSettings, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
                     }
@@ -263,6 +306,42 @@ internal fun RemoteContent(
             }
             Spacer(Modifier.height(8.dp))
         }
+    }
+    if (showSleepTimer) {
+        SleepTimerSheet(
+            state = state.sleepTimer,
+            tvName = state.activeTv?.name,
+            actions = actions.timer,
+            onDismiss = { showSleepTimer = false },
+        )
+    }
+}
+
+/** The sleep timer's entry in the top bar: a moon icon, or the time left while a timer runs. */
+@Composable
+private fun SleepTimerButton(timer: SleepTimer?, onClick: () -> Unit) {
+    if (timer == null) {
+        IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
+            Icon(Icons.Filled.Bedtime, contentDescription = stringResource(R.string.timer_title))
+        }
+        return
+    }
+    val clock by rememberTimerClock()
+    val left = formatCountdown(timer.remainingMs(clock.first))
+    val description = stringResource(R.string.timer_open_active, left)
+    Row(
+        modifier =
+            Modifier
+                .heightIn(min = 48.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onClick, role = Role.Button)
+                .padding(horizontal = 12.dp)
+                .semantics { contentDescription = description },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(Icons.Filled.Bedtime, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Text(left, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
     }
 }
 

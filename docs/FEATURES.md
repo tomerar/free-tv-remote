@@ -74,6 +74,28 @@ send never loses your text. Backspace and Enter buttons act in the TV's field.
 Built-in shortcuts for Netflix, YouTube, Disney+ and Prime Video use deep links; you can add your own
 (`scheme://...`), reorder, disable or delete them. The app tells you when a shortcut could not be sent.
 
+## Sleep timer
+
+The moon icon at the top of the remote opens the **sleep timer**: the TV switches itself off after the time you choose.
+
+- **Any duration.** Quick choices (15, 30, 45, 60, 90 and 120 minutes), a number box (1 to 720 minutes) and
+  + / - buttons that move in steps of five. The sheet shows the duration in words and the time the TV will turn off.
+- **See the time left.** While a timer runs, the icon becomes the countdown, the sheet shows a large countdown and a
+  progress bar, and a notification keeps counting down outside the app, with *+15 min* and *Cancel* buttons.
+  Extend by 5, 15 or 30 minutes, or cancel, at any time before the end.
+- **Keeps running when the app is closed.** The end is an alarm set with Android, so the timer survives the app being
+  swiped away, the process being killed, and a restart of the phone (when the phone was off at the end, the timer is
+  reported as *missed* and the TV is **not** switched off late).
+- **Never turns a TV on.** Android TV has one power key that toggles. The app sends it only when the TV itself says,
+  on a fresh connection, that it is on. A TV that is already off, does not answer, or does not say its state gets
+  nothing, and you are told why. A power command is never sent twice.
+- **Says what happened.** The result (*turned off*, *command sent but not confirmed*, *already off*, *could not be
+  reached* and so on) appears as a notification and in the sheet.
+- **Works with every TV the remote works with.** It uses only the power key that the remote already sends.
+
+It runs on the phone, not on the TV. The phone must be on, with its Wi-Fi connected to the same network, when the
+time is up. See [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md#the-sleep-timer-runs-on-the-phone).
+
 ## Several TVs
 
 Save as many TVs as you like, switch from the title menu, rename or remove them. The app reconnects to the last used

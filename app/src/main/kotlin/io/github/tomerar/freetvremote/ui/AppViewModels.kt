@@ -4,6 +4,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.tomerar.freetvremote.AppContainer
+import io.github.tomerar.freetvremote.R
 import io.github.tomerar.freetvremote.data.AppSettings
 import io.github.tomerar.freetvremote.data.AppShortcut
 import io.github.tomerar.freetvremote.data.SavedTv
@@ -21,10 +22,14 @@ import io.github.tomerar.freetvremote.remote.KeyboardDraftController
 import io.github.tomerar.freetvremote.remote.PairingCoordinator
 import io.github.tomerar.freetvremote.remote.PairingState
 import io.github.tomerar.freetvremote.remote.ShortcutLauncher
+import io.github.tomerar.freetvremote.timer.SleepTimer
+import io.github.tomerar.freetvremote.timer.SleepTimerResult
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -43,6 +48,14 @@ private const val STOP_TIMEOUT_MS = 5_000L
 private fun <T> kotlinx.coroutines.flow.Flow<T>.state(scope: kotlinx.coroutines.CoroutineScope, initial: T): StateFlow<T> =
     stateIn(scope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), initial)
 
+/** The sleep timer as the screens need it: the timer and last result, plus what the user still has to allow. */
+data class SleepTimerUiState(
+    val active: SleepTimer? = null,
+    val last: SleepTimerResult? = null,
+    val exactAllowed: Boolean = true,
+    val notificationsAllowed: Boolean = true,
+)
+
 data class RemoteUiState(
     val activeTv: SavedTv? = null,
     val tvs: List<SavedTv> = emptyList(),
@@ -51,6 +64,7 @@ data class RemoteUiState(
     val connectedSince: Long? = null,
     val shortcuts: List<AppShortcut> = emptyList(),
     val settings: AppSettings = AppSettings(),
+    val sleepTimer: SleepTimerUiState = SleepTimerUiState(),
 )
 
 class RemoteViewModel(
@@ -59,6 +73,45 @@ class RemoteViewModel(
     private val controller = container.remoteController
 
     val gestures = KeyGestures(viewModelScope, controller)
+
+    private val timer = container.sleepTimer
+    private val permissionsChanged = MutableStateFlow(0)
+    private val _timerMessages = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+
+    /** Short messages about the sleep timer (a string resource), shown once. */
+    val timerMessages: SharedFlow<Int> = _timerMessages
+
+    private val sleepTimerState: Flow<SleepTimerUiState> =
+        combine(timer.state, permissionsChanged) { state, _ ->
+            SleepTimerUiState(
+                active = state.active,
+                last = state.last,
+                exactAllowed = container.sleepTimerScheduler.canScheduleExact,
+                notificationsAllowed = container.sleepTimerNotifier.enabled(),
+            )
+        }
+
+    fun startSleepTimer(minutes: Int) {
+        val tv = controller.activeTv.value ?: return
+        viewModelScope.launch { timer.start(tv, minutes) }
+    }
+
+    fun extendSleepTimer(minutes: Int) {
+        viewModelScope.launch { timer.extend(minutes) }
+    }
+
+    fun cancelSleepTimer() {
+        viewModelScope.launch { if (!timer.cancel()) _timerMessages.emit(R.string.timer_too_late) }
+    }
+
+    fun dismissSleepResult() {
+        viewModelScope.launch { timer.dismissResult() }
+    }
+
+    /** Call when the app returns from the system settings: the user may have changed a permission there. */
+    fun refreshSleepPermissions() {
+        permissionsChanged.value++
+    }
 
     val keyboard =
         KeyboardDraftController(
@@ -73,9 +126,13 @@ class RemoteViewModel(
             container.tvRepository.tvs,
             controller.connection,
             combine(controller.tvState, controller.connectedSince) { tvState, since -> tvState to since },
-            combine(container.shortcutsRepository.enabled, container.settingsRepository.settings) { a, b -> a to b },
+            combine(
+                container.shortcutsRepository.enabled,
+                container.settingsRepository.settings,
+                sleepTimerState,
+            ) { shortcuts, settings, timer -> Triple(shortcuts, settings, timer) },
         ) { active, tvs, connection, tv, rest ->
-            RemoteUiState(active, tvs, connection, tv.first, tv.second, rest.first, rest.second)
+            RemoteUiState(active, tvs, connection, tv.first, tv.second, rest.first, rest.second, rest.third)
         }.state(viewModelScope, RemoteUiState())
 
     val volumeKeys get() = container.volumeKeys

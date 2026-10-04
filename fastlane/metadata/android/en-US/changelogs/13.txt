@@ -1,0 +1,1 @@
+New sleep timer: switch the TV off after any time you choose (quick choices or any number of minutes), with a live countdown in the app and in a notification, extend and cancel. It never turns an off TV on, and tells you what happened.

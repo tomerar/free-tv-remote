@@ -14,11 +14,11 @@ class HardwareChecklistDocsTest {
 
     private fun ids(text: String, table: Regex) = table.findAll(text).map { it.groupValues[1] }.toList()
 
-    private val procedureIds get() = ids(testing, Regex("""^\| ([A-O]\d+) \|""", RegexOption.MULTILINE))
+    private val procedureIds get() = ids(testing, Regex("""^\| ([A-P]\d+) \|""", RegexOption.MULTILINE))
     private val templateIds get() =
         ids(
             template,
-            Regex("""^\| ([A-O]\d+) \| (not tested|pass|fail|not supported) \|""", RegexOption.MULTILINE),
+            Regex("""^\| ([A-P]\d+) \| (not tested|pass|fail|not supported) \|""", RegexOption.MULTILINE),
         )
 
     @Test
@@ -30,7 +30,7 @@ class HardwareChecklistDocsTest {
 
     @Test
     fun `the template ships with every result set to not tested`() {
-        val rows = Regex("""^\| [A-O]\d+ \| ([^|]+) \|""", RegexOption.MULTILINE).findAll(template).map { it.groupValues[1].trim() }
+        val rows = Regex("""^\| [A-P]\d+ \| ([^|]+) \|""", RegexOption.MULTILINE).findAll(template).map { it.groupValues[1].trim() }
         assertTrue(rows.all { it == "not tested" })
     }
 

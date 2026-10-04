@@ -58,6 +58,7 @@ Open the file on your Android phone (8.0 or newer), allow *install unknown apps*
 | 🎯 **A real remote** | Laid out like a physical TV remote: mute and power, input and menu, a circular D-pad, back / keyboard / home, VOL and CH rockers, play/pause and info, and app keys at the bottom. Haptics and hold-to-repeat |
 | 🔍 **Finds your TV** | Tap *Search for TVs*: a bounded 15-second search with a progress bar, or type the IP address |
 | 🔐 **Pair once** | Enter the 6-character code from the TV. The TV's certificate is pinned, so nothing can pose as it |
+| 😴 **Sleep timer** | Switch the TV off after any time you choose, with a live countdown, notification, extend and cancel. Never turns an off TV on |
 | 📊 **Live status card** | One line: connection · TV on/off · volume · current app. Tap for model, volume bar, address and more |
 | ⌨️ **Type on the TV** | Write on the phone keyboard, send to the TV; your text is kept if sending fails |
 | 🚀 **App keys** | A grid of colored one-tap circles for Netflix, YouTube, Disney+, Prime Video and your own deep links |

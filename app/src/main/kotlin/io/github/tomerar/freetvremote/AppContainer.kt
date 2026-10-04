@@ -1,6 +1,8 @@
 package io.github.tomerar.freetvremote
 
 import android.content.Context
+import android.os.SystemClock
+import android.provider.Settings
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -15,7 +17,13 @@ import io.github.tomerar.freetvremote.remote.DefaultSessionFactory
 import io.github.tomerar.freetvremote.remote.IdentityProvider
 import io.github.tomerar.freetvremote.remote.RemoteController
 import io.github.tomerar.freetvremote.remote.StoredIdentityProvider
+import io.github.tomerar.freetvremote.remote.TvShutdownUseCase
 import io.github.tomerar.freetvremote.security.KeystoreKeyProtector
+import io.github.tomerar.freetvremote.timer.AlarmSleepTimerScheduler
+import io.github.tomerar.freetvremote.timer.SleepTimerClock
+import io.github.tomerar.freetvremote.timer.SleepTimerManager
+import io.github.tomerar.freetvremote.timer.SleepTimerNotifier
+import io.github.tomerar.freetvremote.timer.SleepTimerRepository
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,5 +69,31 @@ class AppContainer(
             tvRepository,
             DefaultSessionFactory(identityProvider, log = { eventLog.log("Connection", it) }),
             log = { eventLog.log("Connection", it) },
+        )
+
+    val sleepTimerNotifier = SleepTimerNotifier(appContext)
+
+    val sleepTimerScheduler = AlarmSleepTimerScheduler(appContext)
+
+    /** The sleep timer: its state is stored, its deadline is an alarm, so it keeps running when the app is closed. */
+    val sleepTimer =
+        SleepTimerManager(
+            repository = SleepTimerRepository(dataStore),
+            scheduler = sleepTimerScheduler,
+            notifications = sleepTimerNotifier,
+            shutdown =
+                TvShutdownUseCase(
+                    appScope,
+                    tvRepository,
+                    remoteController,
+                    DefaultSessionFactory(identityProvider, log = { eventLog.log("Connection", it) }),
+                    log = { eventLog.log("Sleep timer", it) },
+                ),
+            clock =
+                SleepTimerClock(
+                    elapsedRealtimeMs = SystemClock::elapsedRealtime,
+                    wallClockMs = System::currentTimeMillis,
+                    bootCount = { Settings.Global.getInt(appContext.contentResolver, Settings.Global.BOOT_COUNT, 0) },
+                ),
         )
 }
