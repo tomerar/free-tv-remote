@@ -36,13 +36,16 @@ class TvShutdownUseCase(
     override suspend fun run(tvId: String): SleepOutcome {
         val tv = tvs.tvs.first().firstOrNull { it.id == tvId } ?: return SleepOutcome.TV_REMOVED
         log("shutting down: open remote on this TV=${controller.activeTv.value?.id == tvId}, connection=${controller.connection.value}")
-        return withTimeoutOrNull(totalTimeoutMs) { shutDown(tv) } ?: SleepOutcome.UNREACHABLE
+        var keySent = false
+        val outcome = withTimeoutOrNull(totalTimeoutMs) { shutDown(tv) { keySent = true } }
+        // Running out of time after the key went out means "sent", never "could not be reached".
+        return outcome ?: if (keySent) SleepOutcome.SENT else SleepOutcome.UNREACHABLE
     }
 
-    private suspend fun shutDown(tv: SavedTv): SleepOutcome {
+    private suspend fun shutDown(tv: SavedTv, onKeySent: () -> Unit): SleepOutcome {
         if (controller.activeTv.value?.id == tv.id && controller.connection.value == ConnectionState.Connected) {
             // The open remote is already talking to this TV (a second connection could knock it off).
-            val outcome = decide(controller.tvState) { controller.pressKey(KeyCodes.POWER) }
+            val outcome = decide(controller.tvState, onKeySent) { controller.pressKey(KeyCodes.POWER) }
             if (outcome != SleepOutcome.UNKNOWN_STATE) return outcome
         }
         repeat(ATTEMPTS) { attempt ->
@@ -55,9 +58,9 @@ class TvShutdownUseCase(
                     }
                 log("attempt ${attempt + 1}: connection ${connected ?: "timed out"}")
                 if (connected == ConnectionState.Connected) {
-                    return decide(session.tvState) { session.pressKey(KeyCodes.POWER) }
+                    return decide(session.tvState, onKeySent) { session.pressKey(KeyCodes.POWER) }
                 }
-                log("sleep timer: could not connect (attempt ${attempt + 1})")
+                log("could not connect (attempt ${attempt + 1})")
             } finally {
                 session.stop()
             }
@@ -65,16 +68,17 @@ class TvShutdownUseCase(
         return SleepOutcome.UNREACHABLE
     }
 
-    private suspend fun decide(tvState: StateFlow<TvState>, press: suspend () -> Boolean): SleepOutcome {
+    private suspend fun decide(tvState: StateFlow<TvState>, onKeySent: () -> Unit, press: suspend () -> Boolean): SleepOutcome {
         val report = withTimeoutOrNull(reportTimeoutMs) { tvState.first { it.isOnFresh } }
         if (report == null) {
-            log("sleep timer: the TV sent no power report, nothing was sent")
+            log("the TV sent no power report, nothing was sent")
             return SleepOutcome.UNKNOWN_STATE
         }
         log("the TV reports it is ${if (report.isOn == true) "on" else "off"}")
         if (report.isOn != true) return SleepOutcome.ALREADY_OFF
         if (!press()) return SleepOutcome.FAILED
-        log("sleep timer: power key sent")
+        onKeySent()
+        log("power key sent")
         val off = withTimeoutOrNull(offReportTimeoutMs) { tvState.first { it.isOnFresh && it.isOn == false } }
         log("standby report after the key: ${off != null}")
         return if (off != null) SleepOutcome.TURNED_OFF else SleepOutcome.SENT
@@ -84,18 +88,18 @@ class TvShutdownUseCase(
         try {
             factory.create(scope, tv)
         } catch (e: IOException) {
-            log("sleep timer: could not build the session: ${e::class.simpleName}")
+            log("could not build the session: ${e::class.simpleName}")
             null
         } catch (e: GeneralSecurityException) {
-            log("sleep timer: could not build the session: ${e::class.simpleName}")
+            log("could not build the session: ${e::class.simpleName}")
             null
         }
 
     private companion object {
         const val CONNECT_TIMEOUT_MS = 8_000L
         const val REPORT_TIMEOUT_MS = 4_000L
-        const val OFF_REPORT_TIMEOUT_MS = 3_000L
-        const val TOTAL_TIMEOUT_MS = 28_000L
+        const val OFF_REPORT_TIMEOUT_MS = 8_000L
+        const val TOTAL_TIMEOUT_MS = 45_000L
         const val ATTEMPTS = 2
     }
 }

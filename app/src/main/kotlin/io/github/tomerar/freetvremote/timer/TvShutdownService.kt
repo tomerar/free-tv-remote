@@ -15,7 +15,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Runs the shutdown when the alarm fires. It is a short foreground service (Android's type for a brief, user-requested
- * task that has to finish even though the app is in the background), starts at once, holds the CPU for at most half a
+ * task that has to finish even though the app is in the background), starts at once, holds the CPU for at most a
  * minute and ends as soon as the TV was dealt with.
  */
 class TvShutdownService : Service() {
@@ -77,8 +77,8 @@ class TvShutdownService : Service() {
     companion object {
         private const val EXTRA_REVISION = "revision"
         private const val NO_REVISION = -1L
-        private const val WORK_LIMIT_MS = 30_000L
-        private const val WAKE_LOCK_MS = 40_000L
+        private const val WORK_LIMIT_MS = 50_000L
+        private const val WAKE_LOCK_MS = 60_000L
 
         fun intent(context: Context, revision: Long): Intent =
             Intent(context, TvShutdownService::class.java).putExtra(EXTRA_REVISION, revision)

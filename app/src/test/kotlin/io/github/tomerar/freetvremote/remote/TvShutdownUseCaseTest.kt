@@ -132,6 +132,25 @@ class TvShutdownUseCaseTest {
         }
 
     @Test
+    fun `running out of time after the key went out is reported as sent, not unreachable`() =
+        runBlocking {
+            val (fake, tv) = pairedTv()
+            val slow =
+                TvShutdownUseCase(
+                    scope,
+                    repo,
+                    controller,
+                    fastSessions,
+                    connectTimeoutMs = 2_000,
+                    reportTimeoutMs = 800,
+                    offReportTimeoutMs = 5_000,
+                    totalTimeoutMs = 1_500,
+                )
+            assertEquals(SleepOutcome.SENT, slow.run(tv.id))
+            assertEquals(1, fake.powerKeys())
+        }
+
+    @Test
     fun `a TV that confirms standby is reported as turned off`() =
         runBlocking {
             val (fake, tv) = pairedTv()
