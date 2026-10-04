@@ -156,9 +156,8 @@ class PairingCoordinatorTest {
     @Test
     fun `TV that is off is reported as unreachable`() =
         runBlocking {
-            val port = tv.pairingPort
-            tv.close()
-            coordinator.start("Off TV", "127.0.0.1", port, tv.remotePort)
+            tv.setPairingReachable(false)
+            coordinator.start("Off TV", "127.0.0.1", tv.pairingPort, tv.remotePort)
             val failed = coordinator.state.awaitValue { it is PairingState.Failed }
             assertEquals(PairingState.Failed(PairingFailure.UNREACHABLE), failed)
             assertTrue(repo.tvs.first().isEmpty())

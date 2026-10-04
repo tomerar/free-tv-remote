@@ -65,6 +65,9 @@ public class FakeTv(
     @Volatile
     private var remoteAvailable = true
 
+    @Volatile
+    private var pairingAvailable = true
+
     /** When set, the TV answers the pairing secret with BAD_SECRET even if it is right. */
     @Volatile
     public var rejectSecrets: Boolean = false
@@ -106,7 +109,7 @@ public class FakeTv(
         remoteServer = remote
         pairingPort = pairing.localPort
         remotePort = remote.localPort
-        acceptLoop(pairing, ::handlePairing)
+        acceptLoop(pairing, ::handlePairing, available = { pairingAvailable })
         acceptLoop(remote, ::handleRemote, available = { remoteAvailable })
     }
 
@@ -384,6 +387,14 @@ public class FakeTv(
     public fun setRemoteReachable(reachable: Boolean) {
         remoteAvailable = reachable
         if (!reachable) dropRemoteConnections()
+    }
+
+    /**
+     * Makes the pairing port stop answering (a TV that is off): connections are accepted by the OS and dropped before
+     * any TLS handshake. The port stays bound, so no other server can take it over while a test is connecting.
+     */
+    public fun setPairingReachable(reachable: Boolean) {
+        pairingAvailable = reachable
     }
 
     override fun close() {
