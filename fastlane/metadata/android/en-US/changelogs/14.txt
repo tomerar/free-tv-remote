@@ -1,0 +1,1 @@
+Sleep timer fixes: the end of the timer is now an alarm-clock alarm (delivered on time on locked and idle phones, with a backup if it is late), the countdown no longer runs into the minus, tidier layout of the extend buttons, and Diagnostics shows why a timer was late.

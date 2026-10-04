@@ -71,8 +71,11 @@ The timer is an alarm on the phone that connects to the TV at the end and sends 
 - The phone must be on and on the same Wi-Fi at that time. If not, the TV is not switched off and the result says so.
   A timer built into the TV (for example TCL's *Settings > System > Power & energy > Sleep timer*) does not have this
   limit, but no command to set it over the network is known, so the app does not set it.
-- The alarm is exact only when the user allows *Alarms and reminders* (Android 12 and newer). Without it Android may
-  run it a few minutes late; the sheet says so. Android also limits how many alarms may wake an idle phone, so two
+- The deadline is an *alarm-clock* alarm (the kind a clock app uses), which Android delivers on time in Doze and
+  phone makers do not hold back; while the timer runs the system shows an alarm icon and the time as the next alarm.
+  It is exact only when the user allows *Alarms and reminders* (Android 12 and newer). Without it an ordinary alarm is
+  used, which Android may run a few minutes late; the sheet says so. If the app process is alive and the alarm is more
+  than five seconds late, the app switches the TV off by itself (the TV is never switched twice). Android also limits how many alarms may wake an idle phone, so two
   timers a few minutes apart in deep sleep may not both be on time.
 - **Force stop** removes the alarm (Android 15 and newer). Restarting the phone keeps the timer if it has not ended.
 - The power key toggles. If someone switches the TV off with the physical remote in the second between the app

@@ -180,8 +180,9 @@ screen says the TV shows a new code. Failure logs also name the platform excepti
 
 **D35. Sleep timer on the phone, safe power-off.** There is no known command to start the TV's own sleep timer over
 the remote protocol, and a vendor menu cannot be driven reliably, so the timer runs on the phone: persisted state
-(DataStore), one `AlarmManager.setExactAndAllowWhileIdle` alarm (approximate fallback when exact alarms are not
-allowed), a short foreground service for the connection, a countdown notification the system draws itself. A
+(DataStore), one `AlarmManager.setAlarmClock` alarm, the clock-app kind that Doze and phone makers do not delay
+(`setAndAllowWhileIdle` fallback when exact alarms are not allowed), plus an in-process watchdog that fires five
+seconds late if the alarm did not arrive and the process is alive, a short foreground service for the connection, a countdown notification the system draws itself. A
 reconcile at start, boot, update and permission change restores the alarm; a timer that ended while it could not run
 is *missed* and never fires late. Power is a toggle, so the key goes out only if the TV reports "on" on the current
 connection (`TvState.isOnFresh`), once, never retried after the write. The open remote's connection is reused;

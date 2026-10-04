@@ -52,6 +52,8 @@ class SleepTimerManager(
     private val clock: SleepTimerClock,
     /** Short, non-sensitive notes for the diagnostics log (no names or addresses). */
     private val log: (String) -> Unit = {},
+    /** A one-line description of the phone's power state (battery saver, idle mode...) for the log. */
+    private val environment: () -> String = { "" },
 ) {
     private val lock = Mutex()
 
@@ -67,7 +69,7 @@ class SleepTimerManager(
             if (repository.current().active?.phase == SleepTimer.Phase.RUNNING) return@withLock null
             val duration = SleepTimerLimits.clamp(minutes) * MS_PER_MINUTE
             arm(tv.id, tv.name, duration, duration).also {
-                log("timer started: ${duration / MS_PER_MINUTE} min, exact alarm=${it.exact}")
+                log("timer started: ${duration / MS_PER_MINUTE} min, exact alarm=${it.exact}, ${environment()}")
             }
         }
 
@@ -113,7 +115,8 @@ class SleepTimerManager(
                     log("alarm ignored: no matching timer (cancelled, replaced or already running)")
                     return
                 }
-                log("alarm fired ${(clock.elapsedRealtimeMs() - current.dueElapsedMs) / MS_PER_SECOND} s after the deadline")
+                val late = (clock.elapsedRealtimeMs() - current.dueElapsedMs) / MS_PER_SECOND
+                log("alarm fired $late s after the deadline, ${environment()}")
                 firing = revision
                 current.copy(phase = SleepTimer.Phase.RUNNING).also { repository.save(it) }
             }

@@ -200,7 +200,8 @@ Set it from the moon icon at the top of the remote. Use a short time (1 to 3 min
 | P3 | Start a timer, turn the TV off with its own remote, wait for the end | Same as P2: the TV stays off |
 | P4 | Start a timer with a custom number (for example 7), then use +5, +15, +30 | The countdown and the "turns off at" time follow; the old deadline no longer fires |
 | P5 | Cancel a running timer from the sheet and from the notification | Nothing happens at the old time; the notification disappears |
-| P6 | Phone locked and still for 30 minutes (and again unplugged), then the timer ends | Record whether the TV went off on time and by how much it was late. Repeat with exact alarms allowed and not allowed |
+| P6 | Phone locked and still for 30 minutes (and again unplugged), then the timer ends | Record whether the TV went off on time and by how much it was late (Diagnostics shows "alarm fired N s after the deadline" and the phone's power state). Repeat with "Alarms and reminders" allowed and not allowed |
+| P11 | Start 1 minute, lock the phone at once and leave it locked past the end | The TV goes off on time. If the Diagnostics log has no "alarm fired" line, record the battery settings of the app (unrestricted / optimized / restricted) and the "power state" line of "timer started" |
 | P7 | Start a timer, restart the phone before the end, unlock | The countdown returns with the right time left. If the end passed while the phone was off: "missed", and the TV is not switched off late |
 | P8 | Deny notifications; deny "Alarms and reminders" | The timer still starts; the sheet says what is limited |
 | P9 | Switch the open remote to another TV while the timer runs | The timer still acts on the TV it was started for |

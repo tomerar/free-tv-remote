@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -216,8 +217,9 @@ private fun RunningTimer(timer: SleepTimer, actions: SleepTimerActions) {
     val left = stringResource(R.string.timer_left)
 
     Text(
-        text = if (running) stringResource(R.string.timer_shutting_down) else countdown,
-        style = MaterialTheme.typography.displayMedium,
+        // At zero the alarm is about to go off (or the TV is being switched off): never show a frozen 00:00.
+        text = if (running || remaining == 0L) stringResource(R.string.timer_shutting_down) else countdown,
+        style = MaterialTheme.typography.displayMedium.copy(fontFeatureSettings = "tnum"),
         fontWeight = FontWeight.SemiBold,
         // Tabular digits: the number does not jitter every second. Read out as a whole, not on every tick.
         modifier = Modifier.semantics { contentDescription = "$left $countdown" },
@@ -233,9 +235,10 @@ private fun RunningTimer(timer: SleepTimer, actions: SleepTimerActions) {
             OutlinedButton(
                 onClick = { actions.onExtend(minutes) },
                 enabled = !running,
+                contentPadding = PaddingValues(horizontal = 4.dp),
                 modifier = Modifier.weight(1f).heightIn(min = 48.dp),
             ) {
-                Text(stringResource(R.string.timer_extend, minutes))
+                Text(stringResource(R.string.timer_extend, minutes), maxLines = 1, softWrap = false)
             }
         }
     }

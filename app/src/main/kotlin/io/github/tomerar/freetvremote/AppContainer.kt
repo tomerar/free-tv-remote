@@ -24,6 +24,8 @@ import io.github.tomerar.freetvremote.timer.SleepTimerClock
 import io.github.tomerar.freetvremote.timer.SleepTimerManager
 import io.github.tomerar.freetvremote.timer.SleepTimerNotifier
 import io.github.tomerar.freetvremote.timer.SleepTimerRepository
+import io.github.tomerar.freetvremote.timer.SleepTimerWatchdog
+import io.github.tomerar.freetvremote.timer.describePowerState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -95,6 +97,17 @@ class AppContainer(
                     wallClockMs = System::currentTimeMillis,
                     bootCount = { Settings.Global.getInt(appContext.contentResolver, Settings.Global.BOOT_COUNT, 0) },
                 ),
+            log = { eventLog.log("Sleep timer", it) },
+            environment = { describePowerState(appContext) },
+        )
+
+    /** Backup for the alarm while the process is alive. */
+    val sleepTimerWatchdog =
+        SleepTimerWatchdog(
+            appScope,
+            sleepTimer.state,
+            sleepTimer,
+            SystemClock::elapsedRealtime,
             log = { eventLog.log("Sleep timer", it) },
         )
 }

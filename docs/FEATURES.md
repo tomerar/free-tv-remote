@@ -83,7 +83,7 @@ The moon icon at the top of the remote opens the **sleep timer**: the TV switche
 - **See the time left.** While a timer runs, the icon becomes the countdown, the sheet shows a large countdown and a
   progress bar, and a notification keeps counting down outside the app, with *+15 min* and *Cancel* buttons.
   Extend by 5, 15 or 30 minutes, or cancel, at any time before the end.
-- **Keeps running when the app is closed.** The end is an alarm set with Android, so the timer survives the app being
+- **Keeps running when the app is closed.** The end is an alarm-clock alarm set with Android (you will see the alarm icon while it runs), so the timer survives the app being
   swiped away, the process being killed, and a restart of the phone (when the phone was off at the end, the timer is
   reported as *missed* and the TV is **not** switched off late).
 - **Never turns a TV on.** Android TV has one power key that toggles. The app sends it only when the TV itself says,

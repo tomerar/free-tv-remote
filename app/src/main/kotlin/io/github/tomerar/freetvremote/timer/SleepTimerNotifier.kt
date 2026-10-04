@@ -61,6 +61,8 @@ class SleepTimerNotifier(
                 .setChronometerCountDown(true)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
+                // If the timer never ends cleanly (the app was stopped), the countdown must not run into the minus for ever.
+                .setTimeoutAfter(remaining + STALE_AFTER_MS)
                 .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                 .setContentIntent(openApp())
                 .addAction(
@@ -134,6 +136,7 @@ class SleepTimerNotifier(
         const val COUNTDOWN_ID = 4101
         const val RESULT_ID = 4102
         const val SHUTDOWN_ID = 4103
+        private const val STALE_AFTER_MS = 2 * 60_000L
 
         fun resultText(outcome: SleepOutcome): Int =
             when (outcome) {

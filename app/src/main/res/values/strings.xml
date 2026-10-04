@@ -216,7 +216,7 @@
     <string name="timer_cancel">Cancel timer</string>
     <string name="timer_too_late">Too late to cancel: the TV is being switched off.</string>
     <string name="timer_no_tv">Pick a TV first.</string>
-    <string name="timer_note">When the time is up, this phone must be on and on the same Wi-Fi as the TV. The TV is switched off only if it says it is on, so a TV that is already off is never turned on.</string>
+    <string name="timer_note">When the time is up, this phone must be on and on the same Wi-Fi as the TV. The TV is switched off only if it says it is on, so a TV that is already off is never turned on. While the timer runs, Android shows an alarm icon.</string>
     <string name="timer_exact_needed">Exact timing needs the \"Alarms and reminders\" permission. Without it the TV may turn off a few minutes late.</string>
     <string name="timer_exact_grant">Allow</string>
     <string name="timer_notifications_off">Notifications are off, so you will not see the countdown outside the app.</string>
